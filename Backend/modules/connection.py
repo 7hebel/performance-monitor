@@ -1,39 +1,8 @@
-from modules import identificators
-
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from modules import components
+from modules import monitor
 
 from enum import StrEnum
 import fastapi
-import asyncio
 import uvicorn
-import time
-
-
-class ValueUpdatesBuffer:
-    """
-    Dynamic components will report their updates to this buffer which will be flushed
-    by the connection manager and sent as one packet to the frontend.
-    """
-    
-    def __init__(self) -> None:
-        self.updates: dict["identificators.Identificator", "components.ComponentValT"] = {}
-
-    def insert_update(self, component_id: "identificators.Identificator", value: "components.ComponentValT") -> None:
-        self.updates[component_id] = value
-        
-    def flush(self) -> dict["identificators.Identificator", "components.ComponentValT"]:
-        updates = self.updates
-        self.updates.clear()
-        return updates
-
-
-UPDATES_BUFFER = ValueUpdatesBuffer()
-
-
-server = fastapi.FastAPI()
-client: fastapi.WebSocket | None = None
 
 
 class EventType(StrEnum):
@@ -42,14 +11,24 @@ class EventType(StrEnum):
     RAISE_ALERT = "raise-alert"
 
 
+server = fastapi.FastAPI()
+client: fastapi.WebSocket | None = None
+
+
 @server.websocket("/")
 async def handle_ws_connection(websocket: fastapi.WebSocket):
     global client
     
     await websocket.accept()
     client = websocket    
+    print(f"* Accepted client connection from: {websocket}")
     
     try:
+        composition_data = monitor.prepare_composition_data()
+        import pprint
+        pprint.pprint(composition_data)
+        await websocket.send_json(composition_data)
+        
         while True:
             data = await websocket.receive_json()
             await handle_message(data)
@@ -57,15 +36,20 @@ async def handle_ws_connection(websocket: fastapi.WebSocket):
     except fastapi.WebSocketDisconnect:
         print("Disconnected.")
 
+
 async def handle_message(msg: dict) -> None:
+    print(msg)
     event = msg.get("event")
     data = msg.get("data")
     
 
-def start_server():
+def start_server(port: int = 50505):
+    print(f"* Starting WS server on localhost:{port}")
+
     uvicorn.run(
         server, 
         host="localhost", 
-        port=50505, 
+        port=port, 
         log_level="critical"
     )
+

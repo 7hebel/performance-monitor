@@ -1,14 +1,14 @@
 const MONITORS_LIST = document.getElementById("monitorsList");
 
 
-function addMonitorHeader(monitorId, targetName) {
+function addMonitorHeader(monitorId, targetTitle) {
     const entry = document.createElement("div");
     entry.className = "monitorEntry";
     entry.id = monitorId;
 
     const title = document.createElement("h4");
     title.className = "monitorTitle";
-    title.textContent = targetName;
+    title.textContent = targetTitle;
 
     const chartPreview = document.createElement("div");
 

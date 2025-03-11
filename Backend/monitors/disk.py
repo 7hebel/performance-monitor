@@ -10,7 +10,7 @@ class DISK_Monitor(monitor.MonitorBase):
         self.mountpoint = mountpoint
         
         self.target_title = f"Disk: {mountpoint}"
-        self.product_name = mountpoint
+        self.product_info = mountpoint
         self.hex_color = "#fc9003"
         self.components_register = [
             components.ChartComponent(
@@ -56,6 +56,8 @@ class DISK_Monitor(monitor.MonitorBase):
                 important_item=False
             )
         ]
+        
+        self.register_monitor()
         
     def get_usage(self) -> object:
         return psutil.disk_usage(self.mountpoint)

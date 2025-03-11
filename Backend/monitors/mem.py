@@ -12,7 +12,7 @@ MEM_SPEED = wmi.WMI().Win32_PhysicalMemory()[0].Speed
 class MEM_Monitor(monitor.MonitorBase):
     def __init__(self) -> None:
         self.target_title = "Memory"
-        self.product_name = self.readable_format(mem_info.total)
+        self.product_info = self.readable_format(mem_info.total)
         self.hex_color = "#a86b32"
         self.components_register = [
             components.ChartComponent(
@@ -52,6 +52,8 @@ class MEM_Monitor(monitor.MonitorBase):
                 important_item=True
             )
         ]
+        
+        self.register_monitor()
         
     def readable_format(self, b: int) -> str:
         for unit in ("b", "Kb", "Mb", "Gb", "Tb", "Pb"):

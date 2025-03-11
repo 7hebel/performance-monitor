@@ -1,4 +1,3 @@
-from modules.connection import UPDATES_BUFFER
 from modules import identificators
 from modules import state
 
@@ -14,7 +13,7 @@ type ComponentValT = str | int | float
 class StaticValueGetter:
     """
     Callable getter that returns same, predefined value.
-    Useful in cases like disk's type, size - the values that won't update. 
+    Useful in cases like disk's type, size - the values that won't change. 
     """
     def __init__(self, value: ComponentValT) -> None:
         self.value = value
@@ -51,7 +50,7 @@ class AsyncReportingValueGetter:
         
         # print(f"REPORT: {self.component.identificator} :: {value}")
         self._last_report_t = int(time.time())
-        UPDATES_BUFFER.insert_update(self.component.identificator, value)
+        state.UPDATES_BUFFER.insert_update(self.component.identificator, value)
             
     def async_getter_worker(self) -> None:
         while True:
@@ -81,6 +80,9 @@ class ChartComponent:
 
     def __post_init__(self) -> None:
         AsyncReportingValueGetter(self)
+    
+    def as_dict(self) -> dict:
+        pass
     
     
 @dataclass

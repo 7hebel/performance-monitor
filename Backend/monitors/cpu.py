@@ -13,7 +13,7 @@ cpu_info = cpuinfo.get_cpu_info()
 class CPU_Monitor(monitor.MonitorBase):
     def __init__(self) -> None:
         self.target_title = "CPU"
-        self.product_name = cpu_info["brand_raw"]
+        self.product_info = cpu_info["brand_raw"]
         self.hex_color = "#368ccf"
         self.components_register = [
             components.ChartComponent(
