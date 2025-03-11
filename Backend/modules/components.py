@@ -49,7 +49,7 @@ class AsyncReportingValueGetter:
         if self._last_report_t and int(time.time()) - self._last_report_t < 1:
             return # Last report was less than second ago.
         
-        print(f"REPORT: {self.component.identificator} :: {value}")
+        # print(f"REPORT: {self.component.identificator} :: {value}")
         self._last_report_t = int(time.time())
         UPDATES_BUFFER.insert_update(self.component.identificator, value)
             
