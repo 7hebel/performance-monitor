@@ -27,6 +27,7 @@ class AsyncReportingValueGetter:
     def __init__(self, component: ComponentT) -> None:
         self.component = component
         self._prev_value: ComponentValT | None = None
+        self._last_report_t: int | None = None
         
         self.threaded_getter = Thread(target=self.async_getter_worker, daemon=False)
         self.threaded_getter.start()
@@ -45,6 +46,11 @@ class AsyncReportingValueGetter:
         return False
             
     def report_update(self, value: ComponentValT) -> None:
+        if self._last_report_t and int(time.time()) - self._last_report_t < 1:
+            return # Last report was less than second ago.
+        
+        print(f"REPORT: {self.component.identificator} :: {value}")
+        self._last_report_t = int(time.time())
         UPDATES_BUFFER.insert_update(self.component.identificator, value)
             
     def async_getter_worker(self) -> None:

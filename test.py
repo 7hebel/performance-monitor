@@ -1,14 +1,24 @@
-import wmi
-import time
+# import psutil
 
-def get_realtime_cpu_speed():
-    # Initialize WMI interface
-    c = wmi.WMI()
-    while True:
-        # Query the current CPU speed in MHz
-        for processor in c.Win32_Processor():
-            current_speed_ghz = processor.CurrentClockSpeed / 1000.0  # Convert MHz to GHz
-            print(f"Current CPU Speed: {current_speed_ghz:.2f} GHz")
-        time.sleep(1)  # Update every second
+# def get_size(b: int) -> str:
+#     for unit in ("b", "Kb", "Mb", "Gb", "Tb", "Pb"):
+#         if abs(b) < 1024.0:
+#             return f"{b:3.1f} {unit}"
+#         b /= 1024.0
 
-get_realtime_cpu_speed()
+# partitions = psutil.disk_partitions()
+# for partition in partitions:
+#     print(f"=== Device: {partition.device} ===")
+#     print(partition)
+#     print(f"  Mountpoint: {partition.mountpoint}")
+#     print(f"  File system type: {partition.fstype}")
+#     try:
+#         partition_usage = psutil.disk_usage(partition.mountpoint)
+#     except PermissionError:
+#         # this can be catched due to the disk that
+#         # isn't ready
+#         continue
+#     print(f"  Total Size: {get_size(partition_usage.total)}")
+#     print(f"  Used: {get_size(partition_usage.used)}")
+#     print(f"  Free: {get_size(partition_usage.free)}")
+#     print(f"  Percentage: {partition_usage.percent}%")
