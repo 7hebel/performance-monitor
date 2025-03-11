@@ -21,13 +21,15 @@ async def handle_ws_connection(websocket: fastapi.WebSocket):
     
     await websocket.accept()
     client = websocket    
-    print(f"* Accepted client connection from: {websocket}")
+    print(f"* Accepted client connection from: {websocket.client}")
     
     try:
         composition_data = monitor.prepare_composition_data()
-        import pprint
-        pprint.pprint(composition_data)
-        await websocket.send_json(composition_data)
+        initial_message = {
+            "event": EventType.COMPOSITION_DATA,
+            "data": composition_data
+        }
+        await websocket.send_json(initial_message)
         
         while True:
             data = await websocket.receive_json()

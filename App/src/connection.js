@@ -1,6 +1,11 @@
 let socket = null;
 let reconnectTimeout = null;
 
+const EV_COMPOSITION_DATA = "composition-data";
+const EV_COMPONENTS_UPDATE = "components-update";
+const EV_RAISE_ALERT = "raise-alert";
+
+
 function onSocketFailure() {
     if (reconnectTimeout) return;
 
@@ -28,7 +33,8 @@ function setupSocket() {
     });
 
     socket.addEventListener('message', (event) => {
-        console.log('Received:', event.data);
+        const message = JSON.parse(event.data);
+        handleMessage(message.event, message.data);
     });
 
     socket.addEventListener('close', (event) => {
@@ -36,10 +42,7 @@ function setupSocket() {
         onSocketFailure();
     });
 
-    socket.addEventListener('error', (error) => {
-        console.error('WebSocket error:', error);
-        onSocketFailure();
-    });
+    socket.addEventListener('error', (error) => { onSocketFailure(); });
 }
 
 setupSocket();
@@ -51,4 +54,20 @@ function _sendMessageToServer(evtype, data) {
     };
 
     socket.send(JSON.stringify(message));
+}
+
+async function handleMessage(evtype, data) {
+    if (evtype == EV_COMPOSITION_DATA) {
+        for (monitor of data) {
+            monitor.productInfo;
+            monitor.color;
+            
+            addMonitorHeader(monitor.categoryId, monitor.targetTitle)
+            
+            // monitor.components;
+
+        }
+    }
+
+
 }

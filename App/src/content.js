@@ -1,5 +1,5 @@
 const MONITORS_LIST = document.getElementById("monitorsList");
-
+console.log(MONITORS_LIST)
 
 function addMonitorHeader(monitorId, targetTitle) {
     const entry = document.createElement("div");

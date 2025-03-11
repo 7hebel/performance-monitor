@@ -15,6 +15,9 @@ class MonitorBase:
         for component in self.components_register.values():
             if getattr(component, 'main_chart') == True:
                 return component
+    
+    def get_category(self) -> str:
+        return self.components_register[0].identificator.category
             
 
 MONITORS_REGISTER: list[MonitorBase] = [] 
@@ -44,11 +47,11 @@ def parse_component(component: components.ComponentT) -> dict:
 def prepare_composition_data() -> list[dict]:
     monitors = []
     
-    print(MONITORS_REGISTER)
     for monitor in MONITORS_REGISTER:
         monitor_data = {
-            "target-title": monitor.target_title,
-            "product-info": monitor.product_info,
+            "targetTitle": monitor.target_title,
+            "productInfo": monitor.product_info,
+            "categoryId": monitor.get_category(),
             "color": monitor.hex_color,
             "components": []
         }
