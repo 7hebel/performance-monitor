@@ -21,6 +21,29 @@ class StaticValueGetter:
     def __call__(self) -> ComponentValT:
         return self.value
     
+
+def lazy_static_getter(identificator: identificators.Identificator, getter: Callable[[], ComponentValT]) -> StaticValueGetter:
+    """ 
+    If obtaining an static information takes too long, using this getter is recomended.
+    Creates StaticValueGetter with a placeholder value, starts background evaluation job and
+      immediately returns a blank getter. When desired value is calculated in the background process,
+      it reports itself to the UPDATES_BUFFER and the change is sent in the next updates packet.
+      The value is also assigned to the previously created blank getter, so in case of Frontend
+      reconnection it doesn't have to be reevaluated.
+    """
+    target_static_getter = StaticValueGetter("-")
+    
+    def evaluate_and_report() -> None:
+        value = getter()
+        state.UPDATES_BUFFER.insert_update(identificator, value)
+        target_static_getter.value = target_static_getter
+        print(f"Lazy getter finished job: {identificator.full()}")
+        
+    executor = Thread(target=evaluate_and_report, daemon=True)
+    executor.start()
+    
+    return target_static_getter
+
     
 class AsyncReportingValueGetter:
     def __init__(self, component: ComponentT) -> None:
@@ -28,7 +51,7 @@ class AsyncReportingValueGetter:
         self._prev_value: ComponentValT | None = None
         self._last_report_t: int | None = None
         
-        self.threaded_getter = Thread(target=self.async_getter_worker, daemon=False)
+        self.threaded_getter = Thread(target=self.async_getter_worker, daemon=True)
         self.threaded_getter.start()
             
     def is_value_requested(self) -> bool:
@@ -42,7 +65,6 @@ class AsyncReportingValueGetter:
         if self._last_report_t and int(time.time()) - self._last_report_t < 1:
             return # Last report was less than second ago.
         
-        # print(f"REPORT: {self.component.identificator} :: {value}")
         self._last_report_t = int(time.time())
         state.UPDATES_BUFFER.insert_update(self.component.identificator, value)
             
@@ -71,9 +93,6 @@ class ChartComponent:
 
     def __post_init__(self) -> None:
         AsyncReportingValueGetter(self)
-    
-    def as_dict(self) -> dict:
-        pass
     
     
 @dataclass

@@ -4,9 +4,7 @@ from modules import monitor
 
 import psutil
 import cpuinfo
-import wmi
 
-wmi_client = wmi.WMI().Win32_Processor()[0]
 cpu_info = cpuinfo.get_cpu_info()
 
 
@@ -51,22 +49,9 @@ class CPU_Monitor(monitor.MonitorBase):
                 components.KeyValueComponent(
                     identificator=Identificator("cpu", "physical-cores"),
                     title="Physical cores",
-                    getter=components.StaticValueGetter(self.get_physical_cores())
+                    getter=components.StaticValueGetter(psutil.cpu_count(logical=False))
                 )
             ),
-            
-            components.ComponentsRow(
-                components.KeyValueComponent(
-                    identificator=Identificator("cpu", "l2-size"),
-                    title="L2 Cache size",
-                    getter=components.StaticValueGetter(wmi_client.L2CacheSize)
-                ),
-                components.KeyValueComponent(
-                    identificator=Identificator("cpu", "l3-size"),
-                    title="L3 Cache size",
-                    getter=components.StaticValueGetter(wmi_client.L3CacheSize)
-                )
-            )
         ]
         
         self.register_monitor()
@@ -76,9 +61,6 @@ class CPU_Monitor(monitor.MonitorBase):
 
     def get_processes_count(self) -> int:
         return len(list(psutil.process_iter()))
-    
-    def get_physical_cores(self) -> int:
-        return psutil.cpu_count(logical=False)
     
     
 CPU_Monitor()

@@ -3,10 +3,14 @@ from modules import components
 from modules import monitor
 
 import psutil
-import wmi
 
 mem_info = psutil.virtual_memory()
-MEM_SPEED = wmi.WMI().Win32_PhysicalMemory()[0].Speed
+
+
+def get_mem_speed() -> str:
+    import wmi
+    speed = wmi.WMI().Win32_PhysicalMemory()[0].Speed
+    return f"{speed} MT/s"
 
 
 class MEM_Monitor(monitor.MonitorBase):
@@ -45,7 +49,7 @@ class MEM_Monitor(monitor.MonitorBase):
             components.KeyValueComponent(
                 identificator=Identificator("mem", "speed"),
                 title="Speed",
-                getter=components.StaticValueGetter(f"{MEM_SPEED} MT/s"),
+                getter=components.lazy_static_getter(Identificator("mem", "speed"), get_mem_speed),
                 important_item=False
             )
         ]

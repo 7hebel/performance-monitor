@@ -9,6 +9,7 @@ class MonitorBase:
 
     def register_monitor(self) -> None:
         MONITORS_REGISTER.append(self)
+        print(f"Registered monitor: {self.target_title}")
 
     def get_category(self) -> str:
         return self.components_register[0].identificator.category

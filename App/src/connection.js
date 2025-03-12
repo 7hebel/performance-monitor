@@ -11,11 +11,10 @@ const EV_MONITOR_CHANGE = "monitor-change";
 function onSocketFailure() {
     if (reconnectTimeout) return;
 
-    console.log("Connection failed. Attempting to reconnect in 5 seconds...");
     reconnectTimeout = setTimeout(() => {
         reconnectTimeout = null;
         setupSocket();
-    }, 5000);
+    }, 1000);
 }
 
 function setupSocket() {
