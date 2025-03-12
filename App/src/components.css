@@ -1,0 +1,87 @@
+.componentsRow {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+/* KeyValue component (IMPORTANT) */
+
+.kvComponentImportant {
+    min-width: 160px;
+    width: max-content;
+    height: 80px;
+    border-radius: 6px;
+    background: linear-gradient(160deg, #303030 0%, var(--accent-color) 3000%);
+    border: 1px solid #3e3d3d9d;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+}
+
+.kvComponentImportant > .componentTitle {
+    color: var(--text-color);
+    font-family: 'Ubuntu Sans Mono';
+    font-size: 14px;
+    font-weight: 400;
+    text-align: center;
+    margin: 0;
+}
+
+.kvComponentImportant > .componentValue {
+    text-align: center;
+    font-family: 'Ubuntu Sans Mono';
+    font-size: 24px;
+    color: white;
+    font-weight: 600;
+    margin: 0;
+    margin-top: 12px;
+}
+
+
+/* KeyValue component (STANDARD) */
+
+.kvComponentStandard {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(160deg, #303030 0%, var(--accent-color) 1500%);
+    border-radius: 4px;
+    width: max-content;
+    min-width: 160px;
+    border: 1px solid #3e3d3d59;
+    gap: 12px;
+    padding: 6px;
+    height: min-content;
+}
+
+.kvComponentStandard > .componentTitle {
+    margin-block: 0;
+    color: var(--text-color);
+    font-family: 'Ubuntu Sans Mono';
+}
+
+.kvComponentStandard > .componentValue {
+    margin-block: 0;
+    font-family: 'Ubuntu Sans Mono';
+    color: white;
+    font-weight: 500;
+    background-color: rgba(255, 255, 255, 0.103);
+    border: 1px solid #49494959;
+    padding-block: 4px;
+    padding-inline: 6px;
+    border-radius: 4px;
+}
+
+/* Chart component */
+
+.chartComponent {
+    width: 100%;
+    height: 400px;
+    background: linear-gradient(160deg, #303030 0%, var(--accent-color) 3000%);
+    border: 1px solid #3e3d3d59;
+    border-radius: 6px;
+}
+

@@ -26,7 +26,6 @@ function setupSocket() {
     }
 
     socket = new WebSocket('ws://localhost:50505');
-    console.log(socket)
 
     socket.addEventListener('open', (event) => {
         console.log('Connected to WebSocket server on ws://localhost:50505');
@@ -59,13 +58,8 @@ function _sendMessageToServer(evtype, data) {
 async function handleMessage(evtype, data) {
     if (evtype == EV_COMPOSITION_DATA) {
         for (monitor of data) {
-            monitor.productInfo;
-            monitor.color;
-            
-            addMonitorHeader(monitor.categoryId, monitor.targetTitle)
-            
-            // monitor.components;
-
+            addMonitorHeader(monitor.categoryId, monitor.targetTitle);
+            buildDataPage(monitor.categoryId, monitor.targetTitle, monitor.productInfo, monitor.color, monitor.components);
         }
     }
 

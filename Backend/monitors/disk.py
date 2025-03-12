@@ -9,22 +9,19 @@ class DISK_Monitor(monitor.MonitorBase):
     def __init__(self, mountpoint: str, fstype: str) -> None:
         self.mountpoint = mountpoint
         
-        self.target_title = f"Disk: {mountpoint}"
-        self.product_info = mountpoint
-        self.hex_color = "#fc9003"
+        self.target_title = f"Disk {mountpoint}"
+        self.product_info = self.format_size(self.get_usage().total)
+        self.hex_color = "#70db77"
         self.components_register = [
             components.ChartComponent(
                 identificator=Identificator(f"disk-{mountpoint}", "space-chart"),
                 title="Used space (%)",
-                min_value=0,
-                max_value=100,
                 getter=lambda: self.get_usage().percent,
-                main_chart=True
             ),
             
             components.ComponentsRow(
                 components.KeyValueComponent(
-                    identificator=Identificator(f"disk-{mountpoint}", "total-size"),
+                    identificator=Identificator(f"disk-{mountpoint}", "usage-percent"),
                     title="Usage",
                     getter=lambda: f"{self.get_usage().percent}%",
                     important_item=True

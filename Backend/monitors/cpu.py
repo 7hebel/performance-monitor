@@ -19,10 +19,7 @@ class CPU_Monitor(monitor.MonitorBase):
             components.ChartComponent(
                 identificator=Identificator("cpu", "usage-chart"),
                 title="Usage (%)",
-                min_value=0,
-                max_value=100,
                 getter=lambda: psutil.cpu_percent(interval=1),
-                main_chart=True
             ),
             
             components.ComponentsRow(

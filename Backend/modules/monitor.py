@@ -10,12 +10,6 @@ class MonitorBase:
     def register_monitor(self) -> None:
         MONITORS_REGISTER.append(self)
 
-    def get_main_chart(self) -> components.ChartComponent | None:
-        """ Returns ChartComponent flagged as `main` if any. """
-        for component in self.components_register.values():
-            if getattr(component, 'main_chart') == True:
-                return component
-    
     def get_category(self) -> str:
         return self.components_register[0].identificator.category
             
@@ -33,9 +27,6 @@ def parse_component(component: components.ComponentT) -> dict:
     
     if isinstance(component, components.ChartComponent):
         component_data["type"] = "chart"
-        component_data["details"]["min"] = component.min_value
-        component_data["details"]["max"] = component.max_value
-        component_data["details"]["main"] = component.main_chart
     
     if isinstance(component, components.KeyValueComponent):
         component_data["type"] = "keyvalue"

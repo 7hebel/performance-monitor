@@ -21,7 +21,7 @@ async def handle_ws_connection(websocket: fastapi.WebSocket):
     
     await websocket.accept()
     client = websocket    
-    print(f"* Accepted client connection from: {websocket.client}")
+    print(f"* Accepted client connection from: {websocket.client.port}")
     
     try:
         composition_data = monitor.prepare_composition_data()
@@ -36,7 +36,7 @@ async def handle_ws_connection(websocket: fastapi.WebSocket):
             await handle_message(data)
 
     except fastapi.WebSocketDisconnect:
-        print("Disconnected.")
+        print(f"- Disconnected: {websocket.client.port}.")
 
 
 async def handle_message(msg: dict) -> None:

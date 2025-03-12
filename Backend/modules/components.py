@@ -36,13 +36,7 @@ class AsyncReportingValueGetter:
         To avoid unuseful getter's calls, check if value from this getter 
         is required by the app's state.
         """
-        if state.DISPLAYED_CATEGORY == self.component.identificator.category:
-            return True
-        
-        if isinstance(self.component, ChartComponent):
-            return self.component.main_chart
-        
-        return False
+        return state.DISPLAYED_CATEGORY == self.component.identificator.category or isinstance(self.component, ChartComponent)
             
     def report_update(self, value: ComponentValT) -> None:
         if self._last_report_t and int(time.time()) - self._last_report_t < 1:
@@ -73,10 +67,7 @@ class AsyncReportingValueGetter:
 class ChartComponent:
     identificator: identificators.Identificator
     title: str
-    min_value: int
-    max_value: int
     getter: Callable[[], float]    
-    main_chart: bool = False
 
     def __post_init__(self) -> None:
         AsyncReportingValueGetter(self)
