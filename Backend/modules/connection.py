@@ -1,14 +1,22 @@
 from modules import monitor
+from modules import state
 
 from enum import StrEnum
+import threading
 import fastapi
+import asyncio
 import uvicorn
+import time
 
 
 class EventType(StrEnum):
+    # Send:
     COMPOSITION_DATA = "composition-data"
     COMPONENTS_UPDATE = "components-update"
     RAISE_ALERT = "raise-alert"
+    
+    # Receive:
+    MONIOR_CHANGE = "monitor-change"
 
 
 server = fastapi.FastAPI()
@@ -37,12 +45,16 @@ async def handle_ws_connection(websocket: fastapi.WebSocket):
 
     except fastapi.WebSocketDisconnect:
         print(f"- Disconnected: {websocket.client.port}.")
+        client = None
 
 
 async def handle_message(msg: dict) -> None:
-    print(msg)
     event = msg.get("event")
     data = msg.get("data")
+    
+    if event == EventType.MONIOR_CHANGE:
+        print(f"Changed displayed category to: {data}")
+        state.DISPLAYED_CATEGORY = data
     
 
 def start_server(port: int = 50505):
@@ -55,3 +67,21 @@ def start_server(port: int = 50505):
         log_level="critical"
     )
 
+
+def updates_sender() -> None:
+    """ Sent all updates from last second and clean updates queue. """
+    while True:
+        if client is None:
+            continue
+        
+        updates = state.UPDATES_BUFFER.flush()
+        message = {
+            "event": EventType.COMPONENTS_UPDATE,
+            "data": updates
+        }
+
+        asyncio.run(client.send_json(message))
+        time.sleep(1)
+
+
+threading.Thread(target=updates_sender, daemon=True).start()

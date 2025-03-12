@@ -65,6 +65,8 @@ function buildDataPage(monitorId, targetTitle, productInfo, color, components) {
 
 
 function switchMonitor(monitorId) {
+    announceMonitorChange(monitorId);
+
     defined_page_containers.forEach(m => m.setAttribute("active", "0"));
 
     const newMonitor = document.getElementById(`view-${monitorId}`);
@@ -86,6 +88,7 @@ function buildComponent(type, identificator, title, details, color, container) {
 
         generateChartComponent(identificator, title, color, chartComponent, previewChartEl);
     }
+
     if (type == "keyvalue") {
         const value = details.staticValue ?? '-';
         const kvComponent = document.createElement("div");

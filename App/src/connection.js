@@ -5,6 +5,7 @@ let gotComposition = false;
 const EV_COMPOSITION_DATA = "composition-data";
 const EV_COMPONENTS_UPDATE = "components-update";
 const EV_RAISE_ALERT = "raise-alert";
+const EV_MONITOR_CHANGE = "monitor-change";
 
 
 function onSocketFailure() {
@@ -67,5 +68,17 @@ async function handleMessage(evtype, data) {
         }
     }
 
+    if (evtype == EV_COMPONENTS_UPDATE) {
+        Object.entries(data).forEach(
+            ([id, value]) => {
+                const element = document.getElementById(id);
+                if (element === null) updateChart(id, value);
+                else document.getElementById(id).textContent = value;
+            }
+        )
+    }
+}
 
+function announceMonitorChange(monitorId) {
+    _sendMessageToServer(EV_MONITOR_CHANGE, monitorId)
 }

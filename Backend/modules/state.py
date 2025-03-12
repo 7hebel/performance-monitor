@@ -17,10 +17,10 @@ class ValueUpdatesBuffer:
         self.updates: dict["identificators.Identificator", "components.ComponentValT"] = {}
 
     def insert_update(self, component_id: "identificators.Identificator", value: "components.ComponentValT") -> None:
-        self.updates[component_id] = value
+        self.updates[component_id.full()] = value
         
     def flush(self) -> dict["identificators.Identificator", "components.ComponentValT"]:
-        updates = self.updates
+        updates = self.updates.copy()
         self.updates.clear()
         return updates
 

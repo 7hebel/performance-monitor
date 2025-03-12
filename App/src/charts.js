@@ -30,7 +30,8 @@ function generateChartComponent(identificator, title, color, componentEl, previe
             background: '#ffffff00',
             foreColor: 'var(--text-color)',
             toolbar: { show: false },
-            zoom: { enabled: false }
+            zoom: { enabled: false },
+            animations: { enabled: false }
         },
         dataLabels: { enabled: false },
         series: [{ data: __blankDataset() }],
@@ -77,7 +78,8 @@ function generateChartComponent(identificator, title, color, componentEl, previe
             background: '#ffffff00',
             foreColor: 'var(--text-color)',
             toolbar: { show: false },
-            zoom: { enabled: false }
+            zoom: { enabled: false },
+            animations: { enabled: false }
         },
         dataLabels: { enabled: false },
         series: [{ data: __blankDataset() }],
@@ -143,6 +145,8 @@ function initializeCharts() {
 function updateChart(identificator, value) {
     const charts = REGISTERED_CHARTS[identificator];
     
+    console.log(REGISTERED_CHARTS, identificator)
+
     charts.dataset.shift();
     charts.dataset.push(value);
 
