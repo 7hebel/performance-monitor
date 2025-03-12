@@ -19,13 +19,14 @@ class DISK_Monitor(monitor.MonitorBase):
                 getter=lambda: self.get_usage().percent,
             ),
             
+            components.KeyValueComponent(
+                identificator=Identificator(f"disk-{mountpoint}", "usage-percent"),
+                title="Usage",
+                getter=lambda: f"{self.get_usage().percent}%",
+                important_item=True
+            ),
+            
             components.ComponentsRow(
-                components.KeyValueComponent(
-                    identificator=Identificator(f"disk-{mountpoint}", "usage-percent"),
-                    title="Usage",
-                    getter=lambda: f"{self.get_usage().percent}%",
-                    important_item=True
-                ),
                 components.KeyValueComponent(
                     identificator=Identificator(f"disk-{mountpoint}", "total-size"),
                     title="Capacity",

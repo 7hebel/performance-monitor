@@ -1,14 +1,15 @@
 // {
-//    identifier: [ chartObjForComponent, chartObjForPreview ]
+//    identifier: {
+//        dataset: [],
+//        componentChart: ApexChart(),       
+//        previewChart: ApexChart()       
+//    }
 // }
 const REGISTERED_CHARTS = {};
 
 function __blankDataset() {
     var set = [];
-    for (let i = 0; i < 60; i++) {
-        set.push(0);
-    }
-
+    for (let i = 0; i < 60; i++) set.push(0);
     return set;
 }
 
@@ -79,7 +80,7 @@ function generateChartComponent(identificator, title, color, componentEl, previe
             zoom: { enabled: false }
         },
         dataLabels: { enabled: false },
-        series: [{ data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 13, 12, 56, 23, 23, 67, 100, 98, 56, 12, 67] }],
+        series: [{ data: __blankDataset() }],
         fill: {
             type: "gradient",
             gradient: {
@@ -122,16 +123,30 @@ function generateChartComponent(identificator, title, color, componentEl, previe
 
     var componentChart = new ApexCharts(componentEl, componentOptions);
     var previewChart = new ApexCharts(previewEl, previewOptions);
-    REGISTERED_CHARTS[identificator] = [componentChart, previewChart];
+
+    REGISTERED_CHARTS[identificator] = {
+        dataset: __blankDataset(),
+        componentChart: componentChart,
+        previewChart: previewChart
+    };
 }
 
 function initializeCharts() {
-    Object.values(REGISTERED_CHARTS).forEach(
-        (charts) => {
-            charts[0].render(); 
-            charts[1].render();
+    Object.keys(REGISTERED_CHARTS).forEach(
+        (identifier) => {
+            REGISTERED_CHARTS[identifier].componentChart.render();
+            REGISTERED_CHARTS[identifier].previewChart.render();
         }
     );
 }
 
+function updateChart(identificator, value) {
+    const charts = REGISTERED_CHARTS[identificator];
+    
+    charts.dataset.shift();
+    charts.dataset.push(value);
+
+    charts.componentChart.updateSeries([{data: charts.dataset}]);
+    charts.previewChart.updateSeries([{data: charts.dataset}]);
+}
 

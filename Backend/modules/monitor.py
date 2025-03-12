@@ -22,7 +22,9 @@ def parse_component(component: components.ComponentT) -> dict:
         "identificator": component.identificator.full(),
         "title": component.title,
         "type": None,
-        "details": {}
+        "details": {
+            "staticValue": None
+        }
     }
     
     if isinstance(component, components.ChartComponent):
@@ -31,6 +33,9 @@ def parse_component(component: components.ComponentT) -> dict:
     if isinstance(component, components.KeyValueComponent):
         component_data["type"] = "keyvalue"
         component_data["details"]["important"] = component.important_item
+        
+        if isinstance(component.getter, components.StaticValueGetter):
+            component_data["details"]["staticValue"] = component.getter()
     
     return component_data
     

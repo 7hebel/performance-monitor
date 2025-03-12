@@ -46,12 +46,12 @@ class CPU_Monitor(monitor.MonitorBase):
                 components.KeyValueComponent(
                     identificator=Identificator("cpu", "logical-cores"),
                     title="Logical cores",
-                    getter=components.StaticValueGetter(psutil.cpu_count)
+                    getter=components.StaticValueGetter(psutil.cpu_count())
                 ),
                 components.KeyValueComponent(
                     identificator=Identificator("cpu", "physical-cores"),
                     title="Physical cores",
-                    getter=components.StaticValueGetter(self.get_physical_cores)
+                    getter=components.StaticValueGetter(self.get_physical_cores())
                 )
             ),
             

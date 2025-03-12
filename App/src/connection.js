@@ -1,5 +1,6 @@
 let socket = null;
 let reconnectTimeout = null;
+let gotComposition = false;
 
 const EV_COMPOSITION_DATA = "composition-data";
 const EV_COMPONENTS_UPDATE = "components-update";
@@ -57,6 +58,9 @@ function _sendMessageToServer(evtype, data) {
 
 async function handleMessage(evtype, data) {
     if (evtype == EV_COMPOSITION_DATA) {
+        if (gotComposition) return;
+        gotComposition = true;
+        
         for (monitor of data) {
             addMonitorHeader(monitor.categoryId, monitor.targetTitle);
             buildDataPage(monitor.categoryId, monitor.targetTitle, monitor.productInfo, monitor.color, monitor.components);

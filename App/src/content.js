@@ -87,18 +87,14 @@ function buildComponent(type, identificator, title, details, color, container) {
         generateChartComponent(identificator, title, color, chartComponent, previewChartEl);
     }
     if (type == "keyvalue") {
+        const value = details.staticValue ?? '-';
         const kvComponent = document.createElement("div");
         kvComponent.className = (details.important) ? "kvComponentImportant" : "kvComponentStandard";
         kvComponent.innerHTML = `
             <p class="componentTitle">${title}</p>
-            <p class="componentValue" id="${identificator}">-</p>
+            <p class="componentValue" id="${identificator}">${value}</p>
         `;
         
         container.appendChild(kvComponent);
     }
 }
-
-
-// chart.updateSeries([{
-//     data: [32, 44, 31, 41, 22]
-// }])
