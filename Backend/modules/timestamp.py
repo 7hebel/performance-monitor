@@ -32,3 +32,13 @@ def convert_to_timestamp(readable: str) -> int:
     parsed_datetime = Datetime.strptime(readable, date_format)
     posix_timestamp = parsed_datetime.timestamp()
     return int(posix_timestamp)
+
+
+def get_readable_time() -> str:
+    """ Get current time and format it into: 31/12/2000 18:30:20 """
+    return Datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+
+def get_date_file_format() -> str:
+    """ Get current date and format it into: 2000_12_31 """
+    return Datetime.now().strftime("%Y_%m_%d")
