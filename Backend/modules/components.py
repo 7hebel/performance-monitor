@@ -70,7 +70,7 @@ class AsyncReportingValueGetter:
             
     def async_getter_worker(self) -> None:
         while True:
-            time.sleep(0.01)
+            time.sleep(0.1)
             if not self.is_value_requested():
                 continue
             

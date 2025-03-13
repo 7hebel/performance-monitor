@@ -1,0 +1,7 @@
+uvicorn
+fastapi
+websockets
+cpuinfo
+asyncio
+wmi
+

@@ -5,7 +5,6 @@ from enum import StrEnum
 import threading
 import fastapi
 import asyncio
-import logging
 import uvicorn
 import time
 
