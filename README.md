@@ -35,3 +35,11 @@ Another thread (`modules.connection.updates_sender`) is checking every second fo
 
     - *`lazy_static_getter`* - If obtaining an constant information takes too long, using this getter is recomended. Creates StaticValueGetter with a placeholder value, starts background evaluation job and immediately returns a blank getter, so the startup can continue without waiting for this value. When desired value is calculated in the background process, it reports itself to the `UPDATES_BUFFER` and the change is sent in the next updates packet. The value is also assigned to the previously created blank getter, so in case of Frontend's reconnection it doesn't have to be reevaluated.
 
+### Connection.
+
+1. Backend starts uvicorn WebSocket server on `50505` port.
+2. Frontend connects to it.
+3. The `initial composition` message is sent to client containing structure of components and static values.
+4. Server sends a `update packet` containing all changed values every second.
+5. If user changes page, a `change monitor` information is sent to the server, so it resume tracking assets on this new page and pause checking from the old page.
+6. In case of Frontend's socket error, server disconnects from it and awaits new connection.

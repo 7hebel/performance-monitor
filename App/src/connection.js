@@ -14,7 +14,7 @@ function onSocketFailure() {
     reconnectTimeout = setTimeout(() => {
         reconnectTimeout = null;
         setupSocket();
-    }, 5000);
+    }, 1000);
 }
 
 function setupSocket() {
