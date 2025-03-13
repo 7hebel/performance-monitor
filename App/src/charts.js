@@ -23,6 +23,12 @@ function generateChartMetric(identificator, title, color, metricEl, previewEl) {
             offsetY: 6,
             floating: false,
         },
+        subtitle: {
+            text: '60 seconds',
+            align: 'right',
+            offsetY: 6,
+            floating: false,
+        },
         chart: {
             height: 400,
             fontFamily: 'Ubuntu Sans Mono',
