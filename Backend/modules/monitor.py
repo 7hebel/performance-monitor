@@ -1,4 +1,5 @@
 from modules import metrics
+from modules import logs
 
 
 class MonitorBase:
@@ -6,10 +7,10 @@ class MonitorBase:
     product_info: str
     hex_color: str
     metrics_struct: list[metrics.MetricT | metrics.MetricsRow]
-
+    
     def register_monitor(self) -> None:
         MONITORS_REGISTER.append(self)
-        print(f"Registered monitor: {self.target_title}")
+        logs.log("Monitor", "info", f"Registered monitor: {self.target_title}")
 
     def get_category(self) -> str:
         return self.metrics_struct[0].identificator.category

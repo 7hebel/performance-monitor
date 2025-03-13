@@ -55,7 +55,7 @@ class CPU_Monitor(monitor.MonitorBase):
         ]
         
         self.register_monitor()
-
+        
     def get_cpu_usage(self) -> str:
         return f"{psutil.cpu_percent(interval=1)}%"
 

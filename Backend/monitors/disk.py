@@ -1,6 +1,7 @@
 from modules.identificators import Identificator
 from modules import metrics
 from modules import monitor
+from modules import logs
 
 import psutil
 
@@ -8,7 +9,6 @@ import psutil
 class DISK_Monitor(monitor.MonitorBase):
     def __init__(self, mountpoint: str, fstype: str) -> None:
         self.mountpoint = mountpoint
-        
         self.target_title = f"Disk {mountpoint}"
         self.product_info = self.format_size(self.get_usage().total)
         self.hex_color = "#70db77"

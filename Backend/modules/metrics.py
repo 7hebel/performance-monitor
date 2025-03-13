@@ -1,5 +1,6 @@
 from modules import identificators
 from modules import state
+from modules import logs
 
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -32,12 +33,13 @@ def lazy_static_getter(identificator: identificators.Identificator, getter: Call
       reconnection it doesn't have to be reevaluated.
     """
     target_static_getter = StaticValueGetter("-")
+    timer = logs.Timer()
     
     def evaluate_and_report() -> None:
         value = getter()
         state.UPDATES_BUFFER.insert_update(identificator, value)
         target_static_getter.value = value
-        print(f"Lazy getter finished job: {identificator.full()}")
+        logs.log("LazyGetter", "info", f"Lazy StaticValueGetter finished job for: {identificator.full()} in: {timer.measure()}")
         
     executor = Thread(target=evaluate_and_report, daemon=True)
     executor.start()
@@ -76,7 +78,11 @@ class AsyncReportingValueGetter:
             if not self.is_value_requested():
                 continue
             
-            new_value = self.metric.getter()
+            try:
+                new_value = self.metric.getter()
+            except Exception as error:
+                new_value = "-"
+                logs.log("AsyncGetterWorker", "error", f"getter of {self.metric.identificator.full()} raised exception: {error}")
             
             if not isinstance(self.metric, ChartMetric):
                 if new_value == self._prev_value:

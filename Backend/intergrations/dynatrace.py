@@ -9,10 +9,11 @@ import requests
 env_config = dotenv_values("../.env")
 DYNATRACE_ENVIRONMENT_ID = env_config.get("DT-EnvId")
 DYNATRACE_LOGS_INGEST_API_KEY = env_config.get("DT-Logs")
+ENABLE_LOGGING = True
 
     
 def save_log_to_dynatrace(log: "LogEntity"):
-    if DYNATRACE_ENVIRONMENT_ID is None or DYNATRACE_LOGS_INGEST_API_KEY is None:
+    if not ENABLE_LOGGING or DYNATRACE_ENVIRONMENT_ID is None or DYNATRACE_LOGS_INGEST_API_KEY is None:
         return
     
     url = f"https://{DYNATRACE_ENVIRONMENT_ID}.live.dynatrace.com/api/v2/logs/ingest"
@@ -24,9 +25,8 @@ def save_log_to_dynatrace(log: "LogEntity"):
         {
             "content": log.content,
             "status": log.status,
+            "timestamp": log.timestamp,
             "service.name": log.subject,
-            "log.source": log.call_stack,
-            'log.source.origin': log.call_origin
         }
     ]
     

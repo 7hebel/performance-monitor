@@ -4,6 +4,24 @@ Computer's performance monitoring app similar to the Window's Task Manager.
 
 <img src="./assets/app.png" alt="App" />
 
+### Getting started.
+
+Environmental variables are stored in `.env` file. It is not present in the repository.
+```env
+DT-EnvId=aaa00000
+DT-Logs=dt0000.AAAAAAAAAAAAAAAAAAAAAAAA.BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+```
+
+Installing python's dependencies.
+```bash
+pip install -r requirements.txt
+```
+
+Running Backend.
+```bash
+cd Backend
+py server.py  (or python3 server.py)
+```
 
 ### Monitors.
 

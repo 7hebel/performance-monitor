@@ -1,5 +1,6 @@
 from modules import monitor
 from modules import state
+from modules import logs
 
 from enum import StrEnum
 import threading
@@ -28,11 +29,14 @@ async def handle_ws_connection(websocket: fastapi.WebSocket):
     global client
     
     if client:
-        return print("Not accepting connection as one is already registered.")
+        logs.log("Connection", "warn", f"Refused incoming WS connection from: {websocket.client.host}:{websocket.client.port} as current has not been closed.")
+        return
         
     await websocket.accept()
-    client = websocket    
-    print(f"* Accepted client connection from: {websocket.client.port}")
+    client = websocket 
+    
+    # Uncommenting this log breaks code...   
+    # logs.log("Connection", "info", f"Accepted incoming WS connection from: {websocket.client.host}:{websocket.client.port}")
     
     try:
         composition_data = monitor.prepare_composition_data()
@@ -42,6 +46,7 @@ async def handle_ws_connection(websocket: fastapi.WebSocket):
         }
         
         await websocket.send_json(initial_message)
+        logs.log("Connection", "info", f"Sent initial message containing {len(composition_data)} monitors.")
         
         while True:
             try:
@@ -49,12 +54,12 @@ async def handle_ws_connection(websocket: fastapi.WebSocket):
                 await handle_message(data)
                 
             except fastapi.WebSocketDisconnect:
-                print(f"- Disconnected: {websocket.client.port} (read error)")
+                logs.log("Connection", "warn", f"Disconnected WS connection with: {websocket.client.host}:{websocket.client.port} (reading error)")
                 await websocket.close()
                 client = None
 
     except fastapi.WebSocketDisconnect:
-        print(f"- Disconnected: {websocket.client.port}.")
+        logs.log("Connection", "warn", f"Disconnected WS connection with: {websocket.client.host}:{websocket.client.port} (connection error)")
         await websocket.close()
         client = None
 
@@ -64,19 +69,18 @@ async def handle_message(msg: dict) -> None:
     data = msg.get("data")
     
     if event == EventType.MONIOR_CHANGE:
-        print(f"Changed displayed category to: {data}")
+        logs.log("Connection", "info", f"Switched active category to: `{data}`")
         state.DISPLAYED_CATEGORY = data
     
 
 def start_server(port: int = 50505):
-    print(f"* Starting WS server on localhost:{port}")
-
     uvicorn.run(
         server, 
         host="localhost", 
         port=port, 
         log_level="critical",
     )
+
 
 def updates_sender() -> None:
     """ Sent all updates from last second and clean updates queue. """
@@ -95,7 +99,7 @@ def updates_sender() -> None:
         try:
             asyncio.run(client.send_json(message))
         except RuntimeError:
-            print("- Client disconnected (send error)")
+            logs.log("Connection", "warn", f"Disconnected WS connection with: {client.client.host}:{client.client.port} (write error)")
             client = None
             
         time.sleep(1)
