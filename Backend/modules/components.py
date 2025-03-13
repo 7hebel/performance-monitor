@@ -36,7 +36,7 @@ def lazy_static_getter(identificator: identificators.Identificator, getter: Call
     def evaluate_and_report() -> None:
         value = getter()
         state.UPDATES_BUFFER.insert_update(identificator, value)
-        target_static_getter.value = target_static_getter
+        target_static_getter.value = value
         print(f"Lazy getter finished job: {identificator.full()}")
         
     executor = Thread(target=evaluate_and_report, daemon=True)

@@ -5,6 +5,7 @@ from enum import StrEnum
 import threading
 import fastapi
 import asyncio
+import logging
 import uvicorn
 import time
 
@@ -27,6 +28,9 @@ client: fastapi.WebSocket | None = None
 async def handle_ws_connection(websocket: fastapi.WebSocket):
     global client
     
+    if client:
+        return print("Not accepting connection as one is already registered.")
+        
     await websocket.accept()
     client = websocket    
     print(f"* Accepted client connection from: {websocket.client.port}")
@@ -37,11 +41,18 @@ async def handle_ws_connection(websocket: fastapi.WebSocket):
             "event": EventType.COMPOSITION_DATA,
             "data": composition_data
         }
+        
         await websocket.send_json(initial_message)
         
         while True:
-            data = await websocket.receive_json()
-            await handle_message(data)
+            try:
+                data = await websocket.receive_json()
+                await handle_message(data)
+                
+            except fastapi.WebSocketDisconnect:
+                print(f"- Disconnected: {websocket.client.port} (read error)")
+                await websocket.close()
+                client = None
 
     except fastapi.WebSocketDisconnect:
         print(f"- Disconnected: {websocket.client.port}.")
@@ -68,9 +79,10 @@ def start_server(port: int = 50505):
         log_level="critical",
     )
 
-
 def updates_sender() -> None:
     """ Sent all updates from last second and clean updates queue. """
+    global client
+    
     while True:
         if client is None:
             continue
@@ -81,7 +93,12 @@ def updates_sender() -> None:
             "data": updates
         }
 
-        asyncio.run(client.send_json(message))
+        try:
+            asyncio.run(client.send_json(message))
+        except RuntimeError:
+            print("- Client disconnected (send error)")
+            client = None
+            
         time.sleep(1)
 
 

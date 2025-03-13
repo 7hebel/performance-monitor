@@ -145,8 +145,6 @@ function initializeCharts() {
 function updateChart(identificator, value) {
     const charts = REGISTERED_CHARTS[identificator];
     
-    console.log(REGISTERED_CHARTS, identificator)
-
     charts.dataset.shift();
     charts.dataset.push(value);
 
