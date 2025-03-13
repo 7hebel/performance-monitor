@@ -7,12 +7,11 @@ if TYPE_CHECKING:
 DISPLAYED_CATEGORY: str | None = None
 
 
-class ValueUpdatesBuffer:
+class _ValueUpdatesBuffer:
     """
     Dynamic metrics will report their updates to this buffer which will be flushed
     by the connection manager and sent as one packet to the frontend.
     """
-    
     def __init__(self) -> None:
         self.updates: dict["identificators.Identificator", "metrics.MetricValueT"] = {}
 
@@ -25,4 +24,4 @@ class ValueUpdatesBuffer:
         return updates
 
 
-UPDATES_BUFFER = ValueUpdatesBuffer()
+UPDATES_BUFFER = _ValueUpdatesBuffer()
