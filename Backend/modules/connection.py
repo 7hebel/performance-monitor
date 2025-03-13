@@ -45,6 +45,7 @@ async def handle_ws_connection(websocket: fastapi.WebSocket):
 
     except fastapi.WebSocketDisconnect:
         print(f"- Disconnected: {websocket.client.port}.")
+        await websocket.close()
         client = None
 
 
@@ -64,7 +65,7 @@ def start_server(port: int = 50505):
         server, 
         host="localhost", 
         port=port, 
-        log_level="critical"
+        log_level="critical",
     )
 
 

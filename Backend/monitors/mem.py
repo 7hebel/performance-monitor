@@ -4,8 +4,8 @@ from modules import monitor
 
 import psutil
 
-mem_info = psutil.virtual_memory()
 
+mem_info = psutil.virtual_memory()
 
 def get_mem_speed() -> str:
     import wmi

@@ -14,31 +14,19 @@ function onSocketFailure() {
     reconnectTimeout = setTimeout(() => {
         reconnectTimeout = null;
         setupSocket();
-    }, 1000);
+    }, 5000);
 }
 
 function setupSocket() {
-    if (socket) {
-        try {
-            socket.close();
-        } catch (e) {
-            console.warn("Error closing previous socket:", e);
-        }
-    }
-
     socket = new WebSocket('ws://localhost:50505');
-
-    socket.addEventListener('open', (event) => {
-        console.log('Connected to WebSocket server on ws://localhost:50505');
-    });
-
+    
     socket.addEventListener('message', (event) => {
         const message = JSON.parse(event.data);
         handleMessage(message.event, message.data);
     });
-
+    
     socket.addEventListener('close', (event) => {
-        console.log('Connection closed:', event.reason);
+        console.log('Connection closed:', event);
         onSocketFailure();
     });
 

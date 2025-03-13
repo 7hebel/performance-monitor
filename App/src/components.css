@@ -1,19 +1,19 @@
 .componentsRow {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
     align-items: center;
     gap: 12px;
+    width: 100%;
 }
 
 /* KeyValue component (IMPORTANT) */
 
 .kvComponentImportant {
     min-width: 160px;
-    width: max-content;
+    width: 100%;
     height: 80px;
     border-radius: 6px;
-    background: linear-gradient(160deg, #303030 0%, var(--accent-color) 3000%);
+    background: linear-gradient(160deg, #303030 0%, var(--accent-color) 1500%);
     border: 1px solid #3e3d3d9d;
     display: flex;
     flex-direction: column;
@@ -49,7 +49,7 @@
     align-items: center;
     background: linear-gradient(160deg, #303030 0%, var(--accent-color) 1500%);
     border-radius: 4px;
-    width: max-content;
+    width: 100%;
     min-width: 160px;
     border: 1px solid #3e3d3d59;
     gap: 12px;
@@ -61,6 +61,7 @@
     margin-block: 0;
     color: var(--text-color);
     font-family: 'Ubuntu Sans Mono';
+    font-size: 14px;
 }
 
 .kvComponentStandard > .componentValue {
