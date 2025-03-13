@@ -24,7 +24,7 @@ function addMonitorHeader(monitorId, targetTitle) {
 }
 
 
-function buildDataPage(monitorId, targetTitle, productInfo, color, components) {
+function buildDataPage(monitorId, targetTitle, productInfo, color, metrics) {
     const monitorView = document.createElement("div");
     monitorView.className = "monitorView";
     monitorView.id = `view-${monitorId}`;
@@ -38,21 +38,21 @@ function buildDataPage(monitorId, targetTitle, productInfo, color, components) {
         </div>
     `;
 
-    const componentsContainer = document.createElement("div");
-    componentsContainer.className = "componentsContainer";
-    monitorView.appendChild(componentsContainer);
+    const metricsContaienr = document.createElement("div");
+    metricsContaienr.className = "metricsContainer";
+    monitorView.appendChild(metricsContaienr);
 
-    components.forEach(component => {
-        if (Array.isArray(component)) { // ComponentsRow
+    metrics.forEach(metric => {
+        if (Array.isArray(metric)) { // MetricsRow
             const row = document.createElement("div");
-            row.className = "componentsRow";
-            componentsContainer.appendChild(row);
+            row.className = "metricsRow";
+            metricsContaienr.appendChild(row);
 
-            component.forEach(rowComponent => {
-                buildComponent(rowComponent.type, rowComponent.identificator, rowComponent.title, rowComponent.details, color, row);
+            metric.forEach(rowMetric => {
+                buildMetric(rowMetric.type, rowMetric.identificator, rowMetric.title, rowMetric.details, color, row);
             })
         } else {
-            buildComponent(component.type, component.identificator, component.title, component.details, color, componentsContainer)
+            buildMetric(metric.type, metric.identificator, metric.title, metric.details, color, metricsContaienr)
         }
 
     })
@@ -77,27 +77,27 @@ function switchMonitor(monitorId) {
 }
 
 
-function buildComponent(type, identificator, title, details, color, container) {
+function buildMetric(type, identificator, title, details, color, container) {
     if (type == "chart") {
-        const chartComponent = document.createElement("div");
-        chartComponent.className = "chartComponent";
-        container.appendChild(chartComponent);
+        const chartMetric = document.createElement("div");
+        chartMetric.className = "chartMetric";
+        container.appendChild(chartMetric);
 
         const categoryId = identificator.split('.')[0];
         const previewChartEl = document.getElementById(categoryId).querySelector(".chartPreview");
 
-        generateChartComponent(identificator, title, color, chartComponent, previewChartEl);
+        generateChartMetric(identificator, title, color, chartMetric, previewChartEl);
     }
 
     if (type == "keyvalue") {
         const value = details.staticValue ?? '-';
-        const kvComponent = document.createElement("div");
-        kvComponent.className = (details.important) ? "kvComponentImportant" : "kvComponentStandard";
-        kvComponent.innerHTML = `
-            <p class="componentTitle">${title}</p>
-            <p class="componentValue" id="${identificator}">${value}</p>
+        const kvMetric = document.createElement("div");
+        kvMetric.className = (details.important) ? "kvMetricImportant" : "kvMetricStandard";
+        kvMetric.innerHTML = `
+            <p class="metricTitle">${title}</p>
+            <p class="metricValue" id="${identificator}">${value}</p>
         `;
         
-        container.appendChild(kvComponent);
+        container.appendChild(kvMetric);
     }
 }

@@ -12,7 +12,7 @@ import time
 class EventType(StrEnum):
     # Send:
     COMPOSITION_DATA = "composition-data"
-    COMPONENTS_UPDATE = "components-update"
+    METRICS_UPDATE = "metrics-update"
     RAISE_ALERT = "raise-alert"
     
     # Receive:
@@ -88,7 +88,7 @@ def updates_sender() -> None:
         
         updates = state.UPDATES_BUFFER.flush()
         message = {
-            "event": EventType.COMPONENTS_UPDATE,
+            "event": EventType.METRICS_UPDATE,
             "data": updates
         }
 

@@ -1,5 +1,5 @@
 from modules.identificators import Identificator
-from modules import components
+from modules import metrics
 from modules import monitor
 
 import psutil
@@ -18,27 +18,27 @@ class MEM_Monitor(monitor.MonitorBase):
         self.target_title = "Memory"
         self.product_info = self.readable_format(mem_info.total)
         self.hex_color = "#eb923f"
-        self.components_register = [
-            components.ChartComponent(
+        self.metrics_struct = [
+            metrics.ChartMetric(
                 identificator=Identificator("mem", "usage-chart"),
                 title="Usage (%)",
                 getter=lambda: psutil.virtual_memory().percent,
             ),
             
-            components.ComponentsRow(
-                components.KeyValueComponent(
+            metrics.MetricsRow(
+                metrics.KeyValueMetric(
                     identificator=Identificator("mem", "usage-value"),
                     title="Usage",
                     getter=lambda: f"{psutil.virtual_memory().percent}%",
                     important_item=True
                 ),
-                components.KeyValueComponent(
+                metrics.KeyValueMetric(
                     identificator=Identificator("mem", "used"),
                     title="Used",
                     getter=lambda: self.readable_format(psutil.virtual_memory().used),
                     important_item=True
                 ),
-                components.KeyValueComponent(
+                metrics.KeyValueMetric(
                     identificator=Identificator("mem", "free"),
                     title="Free",
                     getter=lambda: self.readable_format(psutil.virtual_memory().free),
@@ -46,10 +46,10 @@ class MEM_Monitor(monitor.MonitorBase):
                 )
             ),
             
-            components.KeyValueComponent(
+            metrics.KeyValueMetric(
                 identificator=Identificator("mem", "speed"),
                 title="Speed",
-                getter=components.lazy_static_getter(Identificator("mem", "speed"), get_mem_speed),
+                getter=metrics.lazy_static_getter(Identificator("mem", "speed"), get_mem_speed),
                 important_item=False
             )
         ]

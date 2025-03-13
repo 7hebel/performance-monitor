@@ -1,44 +1,44 @@
-from modules import components
+from modules import metrics
 
 
 class MonitorBase:
     target_title: str
     product_info: str
     hex_color: str
-    components_register: list[components.ComponentT | components.ComponentsRow]
+    metrics_struct: list[metrics.MetricT | metrics.MetricsRow]
 
     def register_monitor(self) -> None:
         MONITORS_REGISTER.append(self)
         print(f"Registered monitor: {self.target_title}")
 
     def get_category(self) -> str:
-        return self.components_register[0].identificator.category
+        return self.metrics_struct[0].identificator.category
             
 
 MONITORS_REGISTER: list[MonitorBase] = [] 
     
     
-def parse_component(component: components.ComponentT) -> dict:
-    component_data = {
-        "identificator": component.identificator.full(),
-        "title": component.title,
+def export_metric(metric: metrics.MetricT) -> dict:
+    metric_data = {
+        "identificator": metric.identificator.full(),
+        "title": metric.title,
         "type": None,
         "details": {
             "staticValue": None
         }
     }
     
-    if isinstance(component, components.ChartComponent):
-        component_data["type"] = "chart"
+    if isinstance(metric, metrics.ChartMetric):
+        metric_data["type"] = "chart"
     
-    if isinstance(component, components.KeyValueComponent):
-        component_data["type"] = "keyvalue"
-        component_data["details"]["important"] = component.important_item
+    if isinstance(metric, metrics.KeyValueMetric):
+        metric_data["type"] = "keyvalue"
+        metric_data["details"]["important"] = metric.important_item
         
-        if isinstance(component.getter, components.StaticValueGetter):
-            component_data["details"]["staticValue"] = component.getter()
+        if isinstance(metric.getter, metrics.StaticValueGetter):
+            metric_data["details"]["staticValue"] = metric.getter()
     
-    return component_data
+    return metric_data
     
 
 def prepare_composition_data() -> list[dict]:
@@ -50,19 +50,18 @@ def prepare_composition_data() -> list[dict]:
             "productInfo": monitor.product_info,
             "categoryId": monitor.get_category(),
             "color": monitor.hex_color,
-            "components": []
+            "metrics": []
         }
         
-        for component_or_row in monitor.components_register:
-            if not isinstance(component_or_row, components.ComponentsRow):
-                component_data = parse_component(component_or_row)
-                monitor_data["components"].append(component_data)
+        for metric_or_row in monitor.metrics_struct:
+            if not isinstance(metric_or_row, metrics.MetricsRow):
+                metric_data = export_metric(metric_or_row)
+                monitor_data["metrics"].append(metric_data)
                 continue
             
-            row_components = [parse_component(c) for c in component_or_row.get_all()]
-            monitor_data["components"].append(row_components)
+            row_metrics = [export_metric(m) for m in metric_or_row.get_all()]
+            monitor_data["metrics"].append(row_metrics)
             
         monitors.append(monitor_data)    
         
     return monitors
-    

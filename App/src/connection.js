@@ -3,7 +3,7 @@ let reconnectTimeout = null;
 let gotComposition = false;
 
 const EV_COMPOSITION_DATA = "composition-data";
-const EV_COMPONENTS_UPDATE = "components-update";
+const EV_METRICS_UPDATE = "metrics-update";
 const EV_RAISE_ALERT = "raise-alert";
 const EV_MONITOR_CHANGE = "monitor-change";
 
@@ -51,11 +51,11 @@ async function handleMessage(evtype, data) {
         
         for (monitor of data) {
             addMonitorHeader(monitor.categoryId, monitor.targetTitle);
-            buildDataPage(monitor.categoryId, monitor.targetTitle, monitor.productInfo, monitor.color, monitor.components);
+            buildDataPage(monitor.categoryId, monitor.targetTitle, monitor.productInfo, monitor.color, monitor.metrics);
         }
     }
 
-    if (evtype == EV_COMPONENTS_UPDATE) {
+    if (evtype == EV_METRICS_UPDATE) {
         Object.entries(data).forEach(
             ([id, value]) => {
                 const element = document.getElementById(id);

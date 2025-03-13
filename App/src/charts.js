@@ -1,7 +1,7 @@
 // {
 //    identifier: {
 //        dataset: [],
-//        componentChart: ApexChart(),       
+//        metricChart: ApexChart(),       
 //        previewChart: ApexChart()       
 //    }
 // }
@@ -14,8 +14,8 @@ function __blankDataset() {
 }
 
 
-function generateChartComponent(identificator, title, color, componentEl, previewEl) {
-    const componentOptions = {
+function generateChartMetric(identificator, title, color, metricEl, previewEl) {
+    const metricOptions = {
         theme: { mode: 'dark' },
         title: {
             text: title,
@@ -123,12 +123,12 @@ function generateChartComponent(identificator, title, color, componentEl, previe
         }
     }
 
-    var componentChart = new ApexCharts(componentEl, componentOptions);
+    var metricChart = new ApexCharts(metricEl, metricOptions);
     var previewChart = new ApexCharts(previewEl, previewOptions);
 
     REGISTERED_CHARTS[identificator] = {
         dataset: __blankDataset(),
-        componentChart: componentChart,
+        metricChart: metricChart,
         previewChart: previewChart
     };
 }
@@ -136,7 +136,7 @@ function generateChartComponent(identificator, title, color, componentEl, previe
 function initializeCharts() {
     Object.keys(REGISTERED_CHARTS).forEach(
         (identifier) => {
-            REGISTERED_CHARTS[identifier].componentChart.render();
+            REGISTERED_CHARTS[identifier].metricChart.render();
             REGISTERED_CHARTS[identifier].previewChart.render();
         }
     );
@@ -148,7 +148,7 @@ function updateChart(identificator, value) {
     charts.dataset.shift();
     charts.dataset.push(value);
 
-    charts.componentChart.updateSeries([{data: charts.dataset}]);
+    charts.metricChart.updateSeries([{data: charts.dataset}]);
     charts.previewChart.updateSeries([{data: charts.dataset}]);
 }
 

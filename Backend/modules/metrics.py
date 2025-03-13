@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from threading import Thread
 import time
 
-type ComponentT = ChartComponent | KeyValueComponent
-type ComponentValT = str | int | float
+type MetricT = ChartMetric | KeyValueMetric
+type MetricValueT = str | int | float
 
 
 class StaticValueGetter:
@@ -15,14 +15,14 @@ class StaticValueGetter:
     Callable getter that returns same, predefined value.
     Useful in cases like disk's type, size - the values that won't change. 
     """
-    def __init__(self, value: ComponentValT) -> None:
+    def __init__(self, value: MetricValueT) -> None:
         self.value = value
     
-    def __call__(self) -> ComponentValT:
+    def __call__(self) -> MetricValueT:
         return self.value
     
 
-def lazy_static_getter(identificator: identificators.Identificator, getter: Callable[[], ComponentValT]) -> StaticValueGetter:
+def lazy_static_getter(identificator: identificators.Identificator, getter: Callable[[], MetricValueT]) -> StaticValueGetter:
     """ 
     If obtaining an static information takes too long, using this getter is recomended.
     Creates StaticValueGetter with a placeholder value, starts background evaluation job and
@@ -46,9 +46,9 @@ def lazy_static_getter(identificator: identificators.Identificator, getter: Call
 
     
 class AsyncReportingValueGetter:
-    def __init__(self, component: ComponentT) -> None:
-        self.component = component
-        self._prev_value: ComponentValT | None = None
+    def __init__(self, metric: MetricT) -> None:
+        self.metric = metric
+        self._prev_value: MetricValueT | None = None
         self._last_report_t: int | None = None
         
         self.threaded_getter = Thread(target=self.async_getter_worker, daemon=True)
@@ -59,14 +59,14 @@ class AsyncReportingValueGetter:
         To avoid unuseful getter's calls, check if value from this getter 
         is required by the app's state.
         """
-        return state.DISPLAYED_CATEGORY == self.component.identificator.category or isinstance(self.component, ChartComponent)
+        return state.DISPLAYED_CATEGORY == self.metric.identificator.category or isinstance(self.metric, ChartMetric)
             
-    def report_update(self, value: ComponentValT) -> None:
+    def report_update(self, value: MetricValueT) -> None:
         if self._last_report_t and int(time.time()) - self._last_report_t < 1:
             return # Last report was less than second ago.
         
         self._last_report_t = int(time.time())
-        state.UPDATES_BUFFER.insert_update(self.component.identificator, value)
+        state.UPDATES_BUFFER.insert_update(self.metric.identificator, value)
             
     def async_getter_worker(self) -> None:
         while True:
@@ -74,9 +74,9 @@ class AsyncReportingValueGetter:
             if not self.is_value_requested():
                 continue
             
-            new_value = self.component.getter()
+            new_value = self.metric.getter()
             
-            if not isinstance(self.component, ChartComponent):
+            if not isinstance(self.metric, ChartMetric):
                 if new_value == self._prev_value:
                     # Dont send update if value has not been changed and it is not a chart.
                     continue
@@ -86,7 +86,7 @@ class AsyncReportingValueGetter:
             
 
 @dataclass
-class ChartComponent:
+class ChartMetric:
     identificator: identificators.Identificator
     title: str
     getter: Callable[[], float]    
@@ -96,10 +96,10 @@ class ChartComponent:
     
     
 @dataclass
-class KeyValueComponent:
+class KeyValueMetric:
     identificator: identificators.Identificator
     title: str
-    getter: Callable[[], ComponentValT] | StaticValueGetter
+    getter: Callable[[], MetricValueT] | StaticValueGetter
     important_item: bool = False  # Changes style on frontend.
     
     def __post_init__(self) -> None:
@@ -107,11 +107,9 @@ class KeyValueComponent:
             AsyncReportingValueGetter(self)
     
     
-class ComponentsRow:
-    def __init__(self, *components: list[ComponentT]) -> None:
-        self.components = components
+class MetricsRow:
+    def __init__(self, *metrics: list[MetricT]) -> None:
+        self.metrics = metrics
         
-    def get_all(self) -> list[ComponentT]:
-        return self.components
-
-
+    def get_all(self) -> list[MetricT]:
+        return self.metrics

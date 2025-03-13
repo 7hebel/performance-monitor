@@ -1,5 +1,5 @@
 from modules.identificators import Identificator
-from modules import components
+from modules import metrics
 from modules import monitor
 
 import psutil
@@ -13,21 +13,21 @@ class CPU_Monitor(monitor.MonitorBase):
         self.target_title = "CPU"
         self.product_info = cpu_info["brand_raw"]
         self.hex_color = "#368ccf"
-        self.components_register = [
-            components.ChartComponent(
+        self.metrics_struct = [
+            metrics.ChartMetric(
                 identificator=Identificator("cpu", "usage-chart"),
                 title="Usage (%)",
                 getter=lambda: psutil.cpu_percent(interval=0.1),
             ),
             
-            components.ComponentsRow(
-                components.KeyValueComponent(
+            metrics.MetricsRow(
+                metrics.KeyValueMetric(
                     identificator=Identificator("cpu", "usage-value"),
                     title="Usage",
                     getter=self.get_cpu_usage,
                     important_item=True
                 ),
-                components.KeyValueComponent(
+                metrics.KeyValueMetric(
                     identificator=Identificator("cpu", "processes"),
                     title="Processes",
                     getter=self.get_processes_count,
@@ -35,21 +35,21 @@ class CPU_Monitor(monitor.MonitorBase):
                 )
             ),
             
-            components.ComponentsRow(
-                components.KeyValueComponent(
+            metrics.MetricsRow(
+                metrics.KeyValueMetric(
                     identificator=Identificator("cpu", "base-freq"),
                     title="Base speed",
-                    getter=components.StaticValueGetter(cpu_info["hz_actual_friendly"])
+                    getter=metrics.StaticValueGetter(cpu_info["hz_actual_friendly"])
                 ),
-                components.KeyValueComponent(
+                metrics.KeyValueMetric(
                     identificator=Identificator("cpu", "logical-cores"),
                     title="Logical cores",
-                    getter=components.StaticValueGetter(psutil.cpu_count())
+                    getter=metrics.StaticValueGetter(psutil.cpu_count())
                 ),
-                components.KeyValueComponent(
+                metrics.KeyValueMetric(
                     identificator=Identificator("cpu", "physical-cores"),
                     title="Physical cores",
-                    getter=components.StaticValueGetter(psutil.cpu_count(logical=False))
+                    getter=metrics.StaticValueGetter(psutil.cpu_count(logical=False))
                 )
             ),
         ]

@@ -1,4 +1,4 @@
-.componentsRow {
+.metricsRow {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -6,9 +6,9 @@
     width: 100%;
 }
 
-/* KeyValue component (IMPORTANT) */
+/* KeyValue metric (IMPORTANT) */
 
-.kvComponentImportant {
+.kvMetricImportant {
     min-width: 160px;
     width: 100%;
     height: 80px;
@@ -20,7 +20,7 @@
     padding: 8px;
 }
 
-.kvComponentImportant > .componentTitle {
+.kvMetricImportant > .metricTitle {
     color: var(--text-color);
     font-family: 'Ubuntu Sans Mono';
     font-size: 14px;
@@ -29,7 +29,7 @@
     margin: 0;
 }
 
-.kvComponentImportant > .componentValue {
+.kvMetricImportant > .metricValue {
     text-align: center;
     font-family: 'Ubuntu Sans Mono';
     font-size: 24px;
@@ -40,9 +40,9 @@
 }
 
 
-/* KeyValue component (STANDARD) */
+/* KeyValue metric (STANDARD) */
 
-.kvComponentStandard {
+.kvMetricStandard {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -57,14 +57,14 @@
     height: min-content;
 }
 
-.kvComponentStandard > .componentTitle {
+.kvMetricStandard > .metricTitle {
     margin-block: 0;
     color: var(--text-color);
     font-family: 'Ubuntu Sans Mono';
     font-size: 14px;
 }
 
-.kvComponentStandard > .componentValue {
+.kvMetricStandard > .metricValue {
     margin-block: 0;
     font-family: 'Ubuntu Sans Mono';
     color: white;
@@ -76,9 +76,9 @@
     border-radius: 4px;
 }
 
-/* Chart component */
+/* Chart mteric */
 
-.chartComponent {
+.chartMetric {
     width: 100%;
     height: 400px;
     background: linear-gradient(160deg, #303030 0%, var(--accent-color) 3000%);

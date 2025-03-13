@@ -107,7 +107,7 @@ body {
     color: #c7c7c7;
 }
 
-.componentsContainer {
+.metricsContainer {
     padding-block: 16px;
     padding-inline: 12px;
     display: flex;
