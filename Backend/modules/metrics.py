@@ -49,6 +49,7 @@ class AsyncReportingValueGetter:
     def __init__(self, metric: MetricT) -> None:
         self.metric = metric
         self._prev_value: MetricValueT | None = None
+        self._intially_reported = False
         self._last_report_t: int | None = None
         
         self.threaded_getter = Thread(target=self.async_getter_worker, daemon=True)
@@ -59,12 +60,13 @@ class AsyncReportingValueGetter:
         To avoid unuseful getter's calls, check if value from this getter 
         is required by the app's state.
         """
-        return state.DISPLAYED_CATEGORY == self.metric.identificator.category or isinstance(self.metric, ChartMetric)
+        return not self._intially_reported or (state.DISPLAYED_CATEGORY == self.metric.identificator.category or isinstance(self.metric, ChartMetric))
             
     def report_update(self, value: MetricValueT) -> None:
         if self._last_report_t and int(time.time()) - self._last_report_t < 1:
             return # Last report was less than second ago.
         
+        self._intially_reported = True
         self._last_report_t = int(time.time())
         state.UPDATES_BUFFER.insert_update(self.metric.identificator, value)
             
