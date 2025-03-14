@@ -2,15 +2,27 @@ let socket = null;
 let reconnectTimeout = null;
 let gotComposition = false;
 
-const EV_COMPOSITION_DATA = "composition-data";
+const EV_PERF_COMPOSITION_DATA = "perf-composition-data";
 const EV_METRICS_UPDATE = "metrics-update";
 const EV_RAISE_ALERT = "raise-alert";
 const EV_MONITOR_CHANGE = "monitor-change";
 
+function setConnectionStatus(status) {
+    let statusEl = document.getElementById("connectionStatus");
+
+    if (status) {
+        statusEl.setAttribute("status", "1");
+        statusEl.textContent = "";
+    } else {
+        statusEl.setAttribute("status", "0");
+        statusEl.textContent = "Disconnected";
+    }
+}
 
 function onSocketFailure() {
     if (reconnectTimeout) return;
 
+    setConnectionStatus(false);
     reconnectTimeout = setTimeout(() => {
         reconnectTimeout = null;
         setupSocket();
@@ -20,7 +32,9 @@ function onSocketFailure() {
 function setupSocket() {
     socket = new WebSocket('ws://localhost:50505');
     
+    socket.addEventListener('open', (event) => { console.log("Connection opened") });
     socket.addEventListener('message', (event) => {
+        setConnectionStatus(true);
         const message = JSON.parse(event.data);
         handleMessage(message.event, message.data);
     });
@@ -45,7 +59,7 @@ function _sendMessageToServer(evtype, data) {
 }
 
 async function handleMessage(evtype, data) {
-    if (evtype == EV_COMPOSITION_DATA) {
+    if (evtype == EV_PERF_COMPOSITION_DATA) {
         if (gotComposition) return;
         gotComposition = true;
         

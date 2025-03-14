@@ -12,7 +12,7 @@ import time
 
 class EventType(StrEnum):
     # Send:
-    COMPOSITION_DATA = "composition-data"
+    PERFORMANCE_COMPOSITION_DATA = "perf-composition-data"
     METRICS_UPDATE = "metrics-update"
     RAISE_ALERT = "raise-alert"
     
@@ -41,7 +41,7 @@ async def handle_ws_connection(websocket: fastapi.WebSocket):
     try:
         composition_data = monitor.prepare_composition_data()
         initial_message = {
-            "event": EventType.COMPOSITION_DATA,
+            "event": EventType.PERFORMANCE_COMPOSITION_DATA,
             "data": composition_data
         }
         
