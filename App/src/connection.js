@@ -27,7 +27,7 @@ function onSocketFailure() {
 }
 
 function setupSocket() {
-    socket = new WebSocket('ws://localhost:50505');
+    socket = new WebSocket('ws://localhost:50506');
     socket.addEventListener('open', (event) => {
         console.log("Connection opened") 
     });

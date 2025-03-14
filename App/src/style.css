@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Ubuntu+Sans+Mono:wght@400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu+Sans+Mono:wght@400..700&display=swap'); 
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 :root {
     --accent-color: #242334;
@@ -8,12 +8,12 @@
 
 * {
     box-sizing: border-box;
-    font-family: 'Open Sans';
+    font-family: 'Poppins';
 }
 
 body {
     background-color: #181818;
-    background: linear-gradient(135deg, #181818 0%, var(--accent-color) 270%);
+    background: linear-gradient(135deg, #181818 0%, var(--accent-color) 400%);
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -34,8 +34,9 @@ body {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
+    gap: 10px;
+    margin-bottom: 8px;
+    margin-top: 6px;
 }
 
 #connectionStatus {
@@ -48,7 +49,7 @@ body {
     width: auto;
     height: auto;
     padding-block: 4px;
-    padding-inline: 6px;
+    padding-inline: 7px;
 }
 
 #connectionStatus[status="1"] {
@@ -83,15 +84,13 @@ body {
 
 .tab {
     height: 100%;
-    background-color: #ffffff08;
     border-radius: 6px;
     display: flex;
     flex-direction: row;
     align-items: center;
     color: var(--text-color);
     justify-content: space-evenly;
-    border: 1px solid #ffffff0a;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 14px;
     cursor: pointer;
     transition: background-color .4s, color .4s;
@@ -100,15 +99,19 @@ body {
 }
 
 .tab:hover {
-    background-color: #ffffff1c;
+    background-color: #ffffff0f;
 }
 
 .tab[active="1"] {
-    background-color: #ffffff30;
-    border: 1px solid #e1e0e01f;
-    box-shadow: 0px 10px 16px -3px #ffffff1c;
+    background-color: #ffffff21;
+}
+
+.tabsSep {
+    height: 65%;
+    width: 2px;
+    background-color: #ffffff17;
 }
 
 .tabIcon {
-    padding-top: 2px;
+    color: #ffffff85;
 }

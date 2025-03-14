@@ -102,7 +102,7 @@ def send_remove_monitor(category_id: str) -> None:
     logs.log("Connection", "info", f"Sent remove-monitor request for category: {category_id}")
 
 
-def start_server(port: int = 50505):
+def start_server(port: int = 50506):
     uvicorn.run(
         server, 
         host="localhost", 
