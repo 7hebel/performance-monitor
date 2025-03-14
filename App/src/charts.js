@@ -150,11 +150,17 @@ function initializeCharts() {
 
 function updateChart(identificator, value) {
     const charts = REGISTERED_CHARTS[identificator];
-    
-    charts.dataset.shift();
-    charts.dataset.push(value);
+    if (!charts) return;
 
-    charts.metricChart.updateSeries([{data: charts.dataset}]);
-    charts.previewChart.updateSeries([{data: charts.dataset}]);
+    try {
+        charts.dataset.shift();
+        charts.dataset.push(value);
+    
+        charts.metricChart.updateSeries([{data: charts.dataset}]);
+        charts.previewChart.updateSeries([{data: charts.dataset}]);
+    } catch {
+        console.warn(`Failed to update chart: ${identificator}. Removing from register...`);
+        delete REGISTERED_CHARTS[identificator];
+    }
 }
 

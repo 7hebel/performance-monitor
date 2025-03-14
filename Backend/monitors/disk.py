@@ -1,9 +1,12 @@
 from modules.identificators import Identificator
+from modules import connection
 from modules import metrics
 from modules import monitor
 from modules import logs
 
+import threading
 import psutil
+import time
 
 
 class DISK_Monitor(monitor.MonitorBase):
@@ -17,13 +20,15 @@ class DISK_Monitor(monitor.MonitorBase):
                 identificator=Identificator(f"disk-{mountpoint}", "space-chart"),
                 title="Used space (%)",
                 getter=lambda: self.get_usage().percent,
+                suppress_errors=True
             ),
             
             metrics.KeyValueMetric(
                 identificator=Identificator(f"disk-{mountpoint}", "usage-percent"),
                 title="Usage",
                 getter=lambda: f"{self.get_usage().percent}%",
-                important_item=True
+                important_item=True,
+                suppress_errors=True
             ),
             
             metrics.MetricsRow(
@@ -31,19 +36,22 @@ class DISK_Monitor(monitor.MonitorBase):
                     identificator=Identificator(f"disk-{mountpoint}", "total-size"),
                     title="Capacity",
                     getter=metrics.StaticValueGetter(self.format_size(self.get_usage().total)),
-                    important_item=False
+                    important_item=False,
+                    suppress_errors=True
                 ),
                 metrics.KeyValueMetric(
                     identificator=Identificator(f"disk-{mountpoint}", "used-size"),
                     title="Used",
                     getter=lambda: self.format_size(self.get_usage().used),
-                    important_item=False
+                    important_item=False,
+                    suppress_errors=True
                 ),
                 metrics.KeyValueMetric(
                     identificator=Identificator(f"disk-{mountpoint}", "free-size"),
                     title="Free",
                     getter=lambda: self.format_size(self.get_usage().free),
-                    important_item=False
+                    important_item=False,
+                    suppress_errors=True
                 )
             ),
             
@@ -51,7 +59,8 @@ class DISK_Monitor(monitor.MonitorBase):
                 identificator=Identificator(f"disk-{mountpoint}", "fs-type"),
                 title="Filesystem type",
                 getter=metrics.StaticValueGetter(fstype),
-                important_item=False
+                important_item=False,
+                suppress_errors=True
             )
         ]
         
@@ -66,6 +75,39 @@ class DISK_Monitor(monitor.MonitorBase):
                 return f"{b:3.1f} {unit}"
             b /= 1024.0
             
+
+
+registered_partitions = {}
             
 for partition in psutil.disk_partitions():
-    DISK_Monitor(partition.mountpoint, partition.fstype)
+    part_monitor = DISK_Monitor(partition.mountpoint, partition.fstype)
+    registered_partitions[partition] = part_monitor
+
+
+def disk_updates_checker():
+    while True:
+        current_partitions = psutil.disk_partitions()
+        
+        for partition in current_partitions:
+            if partition not in registered_partitions:
+                logs.log("PartitionsChecker", "info", f"Detected new disk partition: {partition.mountpoint}")
+                part_monitor = DISK_Monitor(partition.mountpoint, partition.fstype)
+                registered_partitions[partition] = part_monitor
+                connection.send_add_monitor(part_monitor)
+        
+        removed_partitons = []
+        for reg_partition in registered_partitions:
+            if reg_partition not in current_partitions:
+                logs.log("PartitionsChecker", "info", f"Removed disk partition: {reg_partition.mountpoint}")
+                connection.send_remove_monitor(registered_partitions[reg_partition].get_category())
+                registered_partitions[reg_partition].destroy_monitor()
+                removed_partitons.append(reg_partition)
+
+        for rm_partition in removed_partitons:
+            registered_partitions.pop(rm_partition)
+        
+        time.sleep(1)
+    
+
+checker = threading.Thread(target=disk_updates_checker, daemon=True)
+checker.start()

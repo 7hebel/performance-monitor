@@ -1,9 +1,11 @@
 let socket = null;
 let reconnectTimeout = null;
-let gotComposition = false;
+let gotPerfComposition = false;
 
 const EV_PERF_COMPOSITION_DATA = "perf-composition-data";
-const EV_METRICS_UPDATE = "metrics-update";
+const EV_PERF_METRICS_UPDATE = "perf-metrics-update";
+const EV_PERF_ADD_MONITOR = "perf-add-monitor";
+const EV_PERF_REMOVE_MONITOR = "perf-remove-monitor";
 const EV_RAISE_ALERT = "raise-alert";
 const EV_MONITOR_CHANGE = "monitor-change";
 
@@ -32,7 +34,12 @@ function onSocketFailure() {
 function setupSocket() {
     socket = new WebSocket('ws://localhost:50505');
     
-    socket.addEventListener('open', (event) => { console.log("Connection opened") });
+    socket.addEventListener('open', (event) => {
+        console.log("Connection opened") 
+        if (gotPerfComposition) {
+            window.location.reload()
+        }
+    });
     socket.addEventListener('message', (event) => {
         setConnectionStatus(true);
         const message = JSON.parse(event.data);
@@ -60,16 +67,18 @@ function _sendMessageToServer(evtype, data) {
 
 async function handleMessage(evtype, data) {
     if (evtype == EV_PERF_COMPOSITION_DATA) {
-        if (gotComposition) return;
-        gotComposition = true;
+        if (gotPerfComposition) return;
+        gotPerfComposition = true;
         
         for (monitor of data) {
             addMonitorHeader(monitor.categoryId, monitor.targetTitle);
             buildDataPage(monitor.categoryId, monitor.targetTitle, monitor.productInfo, monitor.color, monitor.metrics);
         }
+
+        console.log(`Built ${data.length} performance monitors.`);
     }
 
-    if (evtype == EV_METRICS_UPDATE) {
+    if (evtype == EV_PERF_METRICS_UPDATE) {
         Object.entries(data).forEach(
             ([id, value]) => {
                 const element = document.getElementById(id);
@@ -77,6 +86,19 @@ async function handleMessage(evtype, data) {
                 else document.getElementById(id).textContent = value;
             }
         )
+    }
+
+    if (evtype == EV_PERF_ADD_MONITOR) {
+        addMonitorHeader(data.categoryId, data.targetTitle);
+        buildDataPage(data.categoryId, data.targetTitle, data.productInfo, data.color, data.metrics);
+        console.log(`Dynamically added new performance monitor: ${data.targetTitle}`);
+    }
+
+    if (evtype == EV_PERF_REMOVE_MONITOR) {
+        document.getElementById(data).remove();
+        document.getElementById("view-" + data).remove();
+        console.log(`Dynamically removed performance monitor: ${data}`);
+        //TODO: handle charts
     }
 }
 

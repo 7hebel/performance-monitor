@@ -12,8 +12,10 @@ import time
 
 class EventType(StrEnum):
     # Send:
-    PERFORMANCE_COMPOSITION_DATA = "perf-composition-data"
-    METRICS_UPDATE = "metrics-update"
+    PERF_COMPOSITION_DATA = "perf-composition-data"
+    PERF_ADD_MONITOR = "perf-add-monitor"
+    PERF_REMOVE_MONITOR = "perf-remove-monitor"
+    PERF_METRICS_UPDATE = "perf-metrics-update"
     RAISE_ALERT = "raise-alert"
     
     # Receive:
@@ -41,7 +43,7 @@ async def handle_ws_connection(websocket: fastapi.WebSocket):
     try:
         composition_data = monitor.prepare_composition_data()
         initial_message = {
-            "event": EventType.PERFORMANCE_COMPOSITION_DATA,
+            "event": EventType.PERF_COMPOSITION_DATA,
             "data": composition_data
         }
         
@@ -72,6 +74,33 @@ async def handle_message(msg: dict) -> None:
         logs.log("Connection", "info", f"Switched active category to: `{data}`")
         state.DISPLAYED_CATEGORY = data
     
+    
+def send_add_monitor(new_monitor: monitor.MonitorBase) -> None:
+    if client is None:
+        return
+    
+    monitor_data = monitor.export_monitor(new_monitor)
+    message = {
+        "event": EventType.PERF_ADD_MONITOR,
+        "data": monitor_data
+    }
+    
+    asyncio.run(client.send_json(message))
+    logs.log("Connection", "info", f"Sent add-monitor request for monitor: {new_monitor.target_title}")
+    
+    
+def send_remove_monitor(category_id: str) -> None:
+    if client is None:
+        return
+    
+    message = {
+        "event": EventType.PERF_REMOVE_MONITOR,
+        "data": category_id
+    }
+    
+    asyncio.run(client.send_json(message))
+    logs.log("Connection", "info", f"Sent remove-monitor request for category: {category_id}")
+
 
 def start_server(port: int = 50505):
     uvicorn.run(
@@ -92,7 +121,7 @@ def updates_sender() -> None:
         
         updates = state.UPDATES_BUFFER.flush()
         message = {
-            "event": EventType.METRICS_UPDATE,
+            "event": EventType.PERF_METRICS_UPDATE,
             "data": updates
         }
 

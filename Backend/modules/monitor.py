@@ -12,6 +12,23 @@ class MonitorBase:
         MONITORS_REGISTER.append(self)
         logs.log("Monitor", "info", f"Registered monitor: {self.target_title}")
 
+    def destroy_monitor(self) -> None:
+        """ Disable all monitor's getters, remove monitor from register. """
+        if self in MONITORS_REGISTER:
+            MONITORS_REGISTER.remove(self)
+        disabled_count = 0
+
+        for metric_or_row in self.metrics_struct:
+            if isinstance(metric_or_row, metrics.MetricsRow):
+                for metric in metric_or_row.get_all():
+                    metric._abort_getter = True
+                    disabled_count += 1
+            else:
+                metric_or_row._abort_getter = True
+                disabled_count += 1
+                
+        logs.log("Monitor", "warn", f"Destroyed monitor: {self.target_title} ({disabled_count} AsyncGetters disabled)")
+        
     def get_category(self) -> str:
         return self.metrics_struct[0].identificator.category
             
@@ -41,28 +58,33 @@ def export_metric(metric: metrics.MetricT) -> dict:
     
     return metric_data
     
+    
+def export_monitor(monitor: MonitorBase) -> dict:
+    monitor_data = {
+        "targetTitle": monitor.target_title,
+        "productInfo": monitor.product_info,
+        "categoryId": monitor.get_category(),
+        "color": monitor.hex_color,
+        "metrics": []
+    }
+    
+    for metric_or_row in monitor.metrics_struct:
+        if not isinstance(metric_or_row, metrics.MetricsRow):
+            metric_data = export_metric(metric_or_row)
+            monitor_data["metrics"].append(metric_data)
+            continue
+        
+        row_metrics = [export_metric(m) for m in metric_or_row.get_all()]
+        monitor_data["metrics"].append(row_metrics)
+        
+    return monitor_data
+
 
 def prepare_composition_data() -> list[dict]:
     monitors = []
     
     for monitor in MONITORS_REGISTER:
-        monitor_data = {
-            "targetTitle": monitor.target_title,
-            "productInfo": monitor.product_info,
-            "categoryId": monitor.get_category(),
-            "color": monitor.hex_color,
-            "metrics": []
-        }
-        
-        for metric_or_row in monitor.metrics_struct:
-            if not isinstance(metric_or_row, metrics.MetricsRow):
-                metric_data = export_metric(metric_or_row)
-                monitor_data["metrics"].append(metric_data)
-                continue
-            
-            row_metrics = [export_metric(m) for m in metric_or_row.get_all()]
-            monitor_data["metrics"].append(row_metrics)
-            
-        monitors.append(monitor_data)    
+        monitor_data = export_monitor(monitor)
+        monitors.append(monitor_data)
         
     return monitors
