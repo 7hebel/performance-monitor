@@ -90,7 +90,7 @@ function buildMetric(type, identificator, title, details, color, container) {
     }
 
     if (type == "keyvalue") {
-        const value = details.staticValue ?? '-';
+        const value = details.initValue ?? '-';
         const kvMetric = document.createElement("div");
         kvMetric.className = (details.important) ? "kvMetricImportant" : "kvMetricStandard";
         kvMetric.innerHTML = `

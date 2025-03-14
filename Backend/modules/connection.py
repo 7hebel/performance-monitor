@@ -35,19 +35,18 @@ async def handle_ws_connection(websocket: fastapi.WebSocket):
         logs.log("Connection", "warn", f"Refused incoming WS connection from: {websocket.client.host}:{websocket.client.port} as current has not been closed.")
         return
         
+    composition_data = monitor.prepare_composition_data()
+    initial_message = {
+        "event": EventType.PERF_COMPOSITION_DATA,
+        "data": composition_data
+    }
+    
+    logs.log("Connection", "info", f"Accepting incoming WS connection from: {websocket.client.host}:{websocket.client.port}")
+    
     await websocket.accept()
     client = websocket 
     
-    # Uncommenting this log breaks code...   
-    # logs.log("Connection", "info", f"Accepted incoming WS connection from: {websocket.client.host}:{websocket.client.port}")
-    
     try:
-        composition_data = monitor.prepare_composition_data()
-        initial_message = {
-            "event": EventType.PERF_COMPOSITION_DATA,
-            "data": composition_data
-        }
-        
         await websocket.send_json(initial_message)
         logs.log("Connection", "info", f"Sent initial message containing {len(composition_data)} monitors.")
         

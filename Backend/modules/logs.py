@@ -54,7 +54,8 @@ def _print_log(log: LogEntity) -> None:
 
 def _save_log(log: LogEntity) -> None:
     filepath = _get_log_filepath()
-    log_content = f"({log.subject}) {log.status}:  {log.content}\n"
+    time_info = Datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    log_content = f"{time_info} ({log.subject}) {log.status}:  {log.content}\n"
     with open(filepath, "a+") as file:
         file.write(log_content)
     

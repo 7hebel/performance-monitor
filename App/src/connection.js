@@ -12,17 +12,13 @@ const EV_MONITOR_CHANGE = "monitor-change";
 
 function setConnectionStatus(status) {
     let statusEl = document.getElementById("connectionStatus");
-
-    if (status) {
-        statusEl.setAttribute("status", "1");
-    } else {
-        statusEl.setAttribute("status", "0");
-    }
+    statusEl.setAttribute("status", (status) ? "1" : "0");
 }
 
 function onSocketFailure() {
     if (reconnectTimeout) return;
-
+    if (gotPerfComposition) window.location.reload();
+    
     setConnectionStatus(false);
     reconnectTimeout = setTimeout(() => {
         reconnectTimeout = null;
@@ -34,9 +30,6 @@ function setupSocket() {
     socket = new WebSocket('ws://localhost:50505');
     socket.addEventListener('open', (event) => {
         console.log("Connection opened") 
-        if (gotPerfComposition) {
-            window.location.reload()
-        }
     });
     socket.addEventListener('message', (event) => {
         setConnectionStatus(true);

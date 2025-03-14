@@ -42,7 +42,7 @@ def export_metric(metric: metrics.MetricT) -> dict:
         "title": metric.title,
         "type": None,
         "details": {
-            "staticValue": None
+            "initValue": None
         }
     }
     
@@ -52,9 +52,7 @@ def export_metric(metric: metrics.MetricT) -> dict:
     if isinstance(metric, metrics.KeyValueMetric):
         metric_data["type"] = "keyvalue"
         metric_data["details"]["important"] = metric.important_item
-        
-        if isinstance(metric.getter, metrics.StaticValueGetter):
-            metric_data["details"]["staticValue"] = metric.getter()
+        metric_data["details"]["initValue"] = metric.getter()
     
     return metric_data
     
