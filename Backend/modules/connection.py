@@ -1,3 +1,4 @@
+from modules import history
 from modules import monitor
 from modules import state
 from modules import logs
@@ -120,6 +121,8 @@ def updates_sender() -> None:
             continue
         
         updates = state.UPDATES_BUFFER.flush()
+        history.handle_updates(updates)
+        
         message = {
             "event": EventType.PERF_METRICS_UPDATE,
             "data": updates

@@ -61,3 +61,8 @@ Another thread (`modules.connection.updates_sender`) is checking every second fo
 4. Server sends a `update packet` containing all changed values every second.
 5. If user changes page, a `change monitor` information is sent to the server, so it resume tracking assets on this new page and pause checking from the old page.
 6. In case of Frontend's socket error, server disconnects from it and awaits new connection.
+
+### Storing historical performance data.
+
+<img src="./assets/performancehistory.png" alt="PerformanceHistory" />
+

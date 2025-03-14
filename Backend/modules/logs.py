@@ -1,12 +1,11 @@
 from intergrations import dynatrace
-from modules import timestamp
 
+from datetime import datetime as Datetime
 from dataclasses import dataclass
 from typing import Literal
 from enum import StrEnum
 import colorama
 import time
-import os
 
 colorama.init()
 
@@ -35,10 +34,7 @@ class LogEntity:
 
 
 def _get_log_filepath() -> str:
-    if not os.path.exists("./logs/"):
-        os.mkdir("./logs/")
-        
-    filepath = "./logs/" + timestamp.get_date_file_format() + ".log"
+    filepath = "./data/logs/" + Datetime.now().strftime("%Y_%m_%d") + ".log"
     return filepath
    
         
@@ -64,7 +60,7 @@ def _save_log(log: LogEntity) -> None:
     
 
 def log(subject: str, status: LogStatus | Literal['info', 'warn', 'error'], content: str) -> None:    
-    log_entity = LogEntity(status, content, subject, timestamp.generate_timestamp())
+    log_entity = LogEntity(status, content, subject, int(time.time()))
 
     _print_log(log_entity)
     _save_log(log_entity)

@@ -33,7 +33,6 @@ function onSocketFailure() {
 
 function setupSocket() {
     socket = new WebSocket('ws://localhost:50505');
-    
     socket.addEventListener('open', (event) => {
         console.log("Connection opened") 
         if (gotPerfComposition) {
@@ -47,7 +46,7 @@ function setupSocket() {
     });
     
     socket.addEventListener('close', (event) => {
-        console.log('Connection closed:', event);
+        if (event.code !== 1006) console.log('Connection closed:', event);
         onSocketFailure();
     });
 
@@ -98,7 +97,6 @@ async function handleMessage(evtype, data) {
         document.getElementById(data).remove();
         document.getElementById("view-" + data).remove();
         console.log(`Dynamically removed performance monitor: ${data}`);
-        //TODO: handle charts
     }
 }
 
