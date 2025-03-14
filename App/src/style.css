@@ -18,7 +18,7 @@ body {
     flex-direction: column;
     width: 100%;
     height: 100dvh;
-    padding: 12px;
+    padding: 10px;
     margin: 0;
     gap: 8px;
 }
@@ -27,7 +27,7 @@ body {
     position: relative;
     width: 100%;
     height: 44px;
-    background-color: #2d2d2dcf;
+    background-color: #292929c9;
     border: 1px solid #ffffff0a;
     border-radius: 8px;
     padding: 5px;
@@ -35,32 +35,32 @@ body {
     flex-direction: row;
     align-items: center;
     gap: 8px;
+    margin-bottom: 4px;
 }
 
 #connectionStatus {
     position: absolute;
-    right: 12px;
-    font-size: 12px;
-    border-radius: 10px;
-    transition: background-color .4s, border .4s, color .4s, width .4s, height .4s;
+    right: 8px;
+    font-size: 10px;
+    border-radius: 16px;
+    transition: background-color .4s, border .4s, color .4s;
     text-align: center;
+    width: auto;
+    height: auto;
+    padding-block: 4px;
+    padding-inline: 6px;
 }
 
 #connectionStatus[status="1"] {
     background-color: #70bb703d;
     border: 1px solid #62c06236;
-    width: 12px;
-    height: 12px;
+    color: #dbfdc7cf;
 }
 
 #connectionStatus[status="0"] {
     background-color: #bb70703d;
     border: 1px solid #c0626236;
     color: #fdc7c7cf;
-    width: auto;
-    height: auto;
-    padding-block: 2px;
-    padding-inline: 6px;
 }
 
 

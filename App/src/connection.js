@@ -9,15 +9,14 @@ const EV_PERF_REMOVE_MONITOR = "perf-remove-monitor";
 const EV_RAISE_ALERT = "raise-alert";
 const EV_MONITOR_CHANGE = "monitor-change";
 
+
 function setConnectionStatus(status) {
     let statusEl = document.getElementById("connectionStatus");
 
     if (status) {
         statusEl.setAttribute("status", "1");
-        statusEl.textContent = "";
     } else {
         statusEl.setAttribute("status", "0");
-        statusEl.textContent = "Disconnected";
     }
 }
 
