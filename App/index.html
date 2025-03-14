@@ -5,14 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="src/style.css">
     <link rel="stylesheet" href="src/metrics.css">
+    <link rel="stylesheet" href="src/monitors.css">
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="src/charts.js"></script>
-    <script defer src="src/content.js"></script>
+    <script defer src="src/tabs.js"></script>
+    <script defer src="src/performance.js"></script>
     <script defer src="src/connection.js"></script>
+    <script src="https://kit.fontawesome.com/e526ea242b.js" crossorigin="anonymous"></script>
     <title>Performance Monitor</title>
 </head>
 <body>
-    <div id="monitorsList"></div>
-    <div id="monitorContents"></div>
+    <div id="tabsContainer">
+        <div class="tab" active="1" onclick="switchTab(this, `tab-performance`)">
+            <i class="tabIcon fa-solid fa-chart-line"></i>
+            <p class="tabTitle">Performance</p>
+        </div>
+        <div class="tab">
+            <i class="tabIcon fa-solid fa-gear"></i>
+            <p class="tabTitle">Processes</p>
+        </div>
+        <div class="tab">
+            <i class="tabIcon fa-solid fa-bell"></i>
+            <p class="tabTitle">Alerts</p>
+        </div>
+        <div class="tab">
+            <i class="tabIcon fa-solid fa-bolt"></i>
+            <p class="tabTitle">System Events</p>
+        </div>
+        <div class="tab">
+            <i class="tabIcon fa-solid fa-bars-staggered"></i>
+            <p class="tabTitle">Logs</p>
+        </div>
+    </div>
+
+    <div id="tabsViews">
+
+        <div class="tabView" id="tab-performance" active="1">
+            <div id="monitorsList"></div>
+            <div id="monitorContents"></div>
+        </div>
+
+    </div>
 </body>
 </html>
