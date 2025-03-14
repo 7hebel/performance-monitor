@@ -1,3 +1,5 @@
+import fastapi.middleware
+import fastapi.middleware.cors
 from modules import history
 from modules import monitor
 from modules import state
@@ -24,10 +26,38 @@ class EventType(StrEnum):
 
 
 server = fastapi.FastAPI()
+server.add_middleware(
+    fastapi.middleware.cors.CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 client: fastapi.WebSocket | None = None
 
 
-@server.websocket("/")
+@server.get("/perf-history/points")
+async def get_performance_history_points(request: fastapi.Request) -> fastapi.responses.JSONResponse:
+    """
+    Return format: 
+    {
+        "31/12/2025": [
+            {
+                "cluster": 483875,
+                "timeinfo": "12:00 - 12:59"    
+            }
+        ],
+        "01/01/2026": [...]
+    }
+    """
+    all_clusters = history.get_all_clusters()
+    dated_clusters = history.prepare_dated_clusters(all_clusters)
+    logs.log("History", "info", f"Prepared and sent history points to: {request.client.host}:{request.client.port}")
+    return fastapi.responses.JSONResponse(dated_clusters)
+
+
+@server.websocket("/ws-stream")
 async def handle_ws_connection(websocket: fastapi.WebSocket):
     global client
     
@@ -53,7 +83,7 @@ async def handle_ws_connection(websocket: fastapi.WebSocket):
         while True:
             try:
                 data = await websocket.receive_json()
-                await handle_message(data)
+                await handle_ws_message(data)
                 
             except fastapi.WebSocketDisconnect:
                 logs.log("Connection", "warn", f"Disconnected WS connection with: {websocket.client.host}:{websocket.client.port} (reading error)")
@@ -66,7 +96,7 @@ async def handle_ws_connection(websocket: fastapi.WebSocket):
         client = None
 
 
-async def handle_message(msg: dict) -> None:
+async def handle_ws_message(msg: dict) -> None:
     event = msg.get("event")
     data = msg.get("data")
     
@@ -74,42 +104,6 @@ async def handle_message(msg: dict) -> None:
         logs.log("Connection", "info", f"Switched active category to: `{data}`")
         state.DISPLAYED_CATEGORY = data
     
-    
-def send_add_monitor(new_monitor: monitor.MonitorBase) -> None:
-    if client is None:
-        return
-    
-    monitor_data = monitor.export_monitor(new_monitor)
-    message = {
-        "event": EventType.PERF_ADD_MONITOR,
-        "data": monitor_data
-    }
-    
-    asyncio.run(client.send_json(message))
-    logs.log("Connection", "info", f"Sent add-monitor request for monitor: {new_monitor.target_title}")
-    
-    
-def send_remove_monitor(category_id: str) -> None:
-    if client is None:
-        return
-    
-    message = {
-        "event": EventType.PERF_REMOVE_MONITOR,
-        "data": category_id
-    }
-    
-    asyncio.run(client.send_json(message))
-    logs.log("Connection", "info", f"Sent remove-monitor request for category: {category_id}")
-
-
-def start_server(port: int = 50506):
-    uvicorn.run(
-        server, 
-        host="localhost", 
-        port=port, 
-        log_level="critical",
-    )
-
 
 def updates_sender() -> None:
     """ Sent all updates from last second and clean updates queue. """
@@ -137,3 +131,12 @@ def updates_sender() -> None:
 
 
 threading.Thread(target=updates_sender, daemon=True).start()
+
+def start_server(port: int = 50506):
+    uvicorn.run(
+        server, 
+        host="localhost", 
+        port=port, 
+        log_level="critical",
+    )
+

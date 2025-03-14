@@ -4,6 +4,7 @@
 :root {
     --accent-color: #242334;
     --text-color: #e1e0e0;
+    --perf-timing-color: #97c47e;
 }
 
 * {
@@ -21,6 +22,7 @@ body {
     padding: 10px;
     margin: 0;
     gap: 8px;
+    overflow-y: hidden;
 }
 
 #tabsContainer {
@@ -114,4 +116,22 @@ body {
 
 .tabIcon {
     color: #ffffff85;
+}
+
+.panelHeader {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    color: var(--text-color);
+    background-color: #2b2a2ad1;
+    border-bottom: 1px solid #ffffff0a;
+    border-radius: 8px 8px 0px 0px;
+    padding-block: 8px;
+    padding-inline: 12px;
+}
+
+.panelHeader > h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
 }

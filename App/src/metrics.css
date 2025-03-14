@@ -90,3 +90,159 @@
     margin-left: -10px;
 }
 
+
+/* Switch between realtime and time travel */
+
+#performanceTimingInfo {
+    position: relative;
+    height: 30px;
+    width: 100%;
+    color: var(--text-color);
+    border-bottom: 1px solid #ffffff0f;
+    font-size: 14px;
+    font-weight: 500;
+    padding-left: 28px;
+    padding-bottom: 12px;
+}
+
+.dot:before {
+    content: '';
+    margin-top: 7px;
+    margin-left: 8px;
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    top: 0;
+    width: 8px;
+    height: 8px;
+    background-color: var(--perf-timing-color);
+    border-radius: 50%;
+}
+
+.dot:after {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    margin-top: 7px;
+    margin-left: 8px;
+    background-color: var(--perf-timing-color);
+    border-radius: 50%;
+    animation-name: 'ripple';
+    animation-duration: 1.25s;
+    animation-timing-function: ease;
+    animation-delay: 0s;
+    animation-iteration-count: infinite;
+    animation-direction: normal;
+}
+
+#performanceHistoryBtn {
+    font-size: 12px;
+    position: absolute;
+    right: 8px;
+    top: 6px;
+    color: #ffffff70;
+    cursor: pointer;
+    transition: color .4s;
+}
+
+#performanceHistoryBtn:hover {
+    color: rgba(255, 255, 255, 0.753);
+}
+
+@keyframes ripple {
+    0% {
+        left: 5px;
+        top: 5px;
+        opacity: 75;
+        width: 0;
+        height: 0;
+    }
+
+    100% {
+        left: -6px;
+        top: -6px;
+        opacity: 0;
+        width: 20px;
+        height: 20px;
+    }
+}
+
+
+/* Time travel mode */
+
+#performanceTimetravelPanel {
+    position: absolute;
+    width: 700px;
+    height: 48px;
+    background-color: #1f1f1fb5;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 12px;
+    border: 1px solid #ffffff0d;
+    box-shadow: 0px 4px 20px -2px #00000063;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 8px;
+    gap: 8px;
+    transition: opacity .4s, bottom .4s;
+}
+
+#performanceTimetravelPanel[hidden="1"] {
+    opacity: 0;
+    bottom: -150px;
+}
+
+.performanceTimetravelSelect {
+    padding-block: 6px;
+    padding-inline: 8px;
+    cursor: pointer;
+    background-color: #292929;
+    border-radius: 6px;
+    border: none;
+    color: var(--text-color);
+    border: 1px solid #ffffff03;
+    transition: background-color .4s;
+    font-family: 'Ubuntu Sans Mono';
+}
+
+.performanceTimetravelSelect:hover {
+    background-color: #383838;
+}
+
+.performanceTimetravelSelect > option {
+    background-color: #383838;
+    font-family: 'Ubuntu Sans Mono';
+    cursor: pointer;
+}
+
+.performanceTimetravelLabel {
+    color: var(--text-color);
+    margin-right: 8px;
+}
+
+#timetravelDate {
+    width: 110px;
+}
+
+#timetravelHours {
+    width: 134px;
+}
+
+#timetravelRunBtn {
+    border-radius: 6px;
+    padding-block: 3px;
+    border: 1px solid #00000038;
+    background-color: var(--text-color);
+    font-weight: 500;
+    padding-inline: 10px;
+    cursor: pointer;
+    color: black;
+    margin-bottom: 1px;
+}
+
+#timetravelRunBtn > i {
+    font-size: 12px;
+    margin-right: 6px;
+}

@@ -1,3 +1,6 @@
+const HTTP_PROTO = "http";
+const API_ADDRESS = "localhost:50506";
+
 let socket = null;
 let reconnectTimeout = null;
 let gotPerfComposition = false;
@@ -27,7 +30,7 @@ function onSocketFailure() {
 }
 
 function setupSocket() {
-    socket = new WebSocket('ws://localhost:50506');
+    socket = new WebSocket(`ws://${API_ADDRESS}/ws-stream`);
     socket.addEventListener('open', (event) => {
         console.log("Connection opened") 
     });
@@ -70,6 +73,7 @@ async function handleMessage(evtype, data) {
     }
 
     if (evtype == EV_PERF_METRICS_UPDATE) {
+        if (!REALTIME_MODE) return;
         Object.entries(data).forEach(
             ([id, value]) => {
                 const element = document.getElementById(id);

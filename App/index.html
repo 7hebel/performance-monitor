@@ -49,10 +49,29 @@
     <div id="tabsViews">
 
         <div class="tabView" id="tab-performance" active="1">
-            <div id="monitorsList"></div>
+            <div id="monitorsList">
+                <div id="performanceTimingInfo">
+                    <div class="dot"></div>
+                    <span id="performanceTimingName">Realtime</span>
+                    <i id="performanceHistoryBtn" class="fa-solid fa-clock-rotate-left" onclick="switchTiming()"></i>
+                </div>
+            </div>
             <div id="monitorContents"></div>
         </div>
 
+    </div>
+
+    <div id="performanceTimetravelPanel" hidden="0">
+        <select class="performanceTimetravelSelect" id="timetravelDate">
+            <option value="0">Date</option>
+        </select>
+        <select class="performanceTimetravelSelect" id="timetravelHours">
+            <option value="0">Hour</option>
+        </select>
+        <button id="timetravelRunBtn" onclick="queryTravelData()">
+            <i class="fa-solid fa-play"></i>
+            Travel
+        </button>
     </div>
 </body>
 </html>

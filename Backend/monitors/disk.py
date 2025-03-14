@@ -5,6 +5,7 @@ from modules import monitor
 from modules import logs
 
 import threading
+import asyncio
 import psutil
 import time
 
@@ -93,15 +94,29 @@ def disk_updates_checker():
                 logs.log("PartitionsChecker", "info", f"Detected new disk partition: {partition.mountpoint}")
                 part_monitor = DISK_Monitor(partition.mountpoint, partition.fstype)
                 registered_partitions[partition] = part_monitor
-                connection.send_add_monitor(part_monitor)
+                
+                monitor_data = monitor.export_monitor(part_monitor)
+                message = {
+                    "event": connection.EventType.PERF_ADD_MONITOR,
+                    "data": monitor_data
+                }
+                if connection.client:
+                    asyncio.run(connection.client.send_json(message))
         
         removed_partitons = []
         for reg_partition in registered_partitions:
             if reg_partition not in current_partitions:
                 logs.log("PartitionsChecker", "info", f"Removed disk partition: {reg_partition.mountpoint}")
-                connection.send_remove_monitor(registered_partitions[reg_partition].get_category())
-                registered_partitions[reg_partition].destroy_monitor()
+                reg_monitor = registered_partitions[reg_partition]
+                reg_monitor.destroy_monitor()
                 removed_partitons.append(reg_partition)
+
+                message = {
+                    "event": connection.EventType.PERF_REMOVE_MONITOR,
+                    "data": reg_monitor.get_category()
+                }
+                if connection.client:
+                    asyncio.run(connection.client.send_json(message))
 
         for rm_partition in removed_partitons:
             registered_partitions.pop(rm_partition)

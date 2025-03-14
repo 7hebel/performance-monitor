@@ -2,8 +2,8 @@ from modules import monitor
 from modules import metrics
 from modules import logs
 
+from datetime import datetime as Datetime
 from dataclasses import dataclass
-import threading
 import json
 import time
 import os
@@ -85,5 +85,33 @@ def handle_updates(updates: dict[str, metrics.MetricValueT]) -> None:
             minute_updates_buffer[metric_id] = [value]
             
     
-    
+def get_all_clusters() -> list[int]:
+    clusters = []
+    for file in os.listdir("./data/history/"):
+        cluster, _ = file.split(".", 1)
+        clusters.append(int(cluster))
         
+    return clusters
+
+
+def prepare_dated_clusters(clusters: list[int]) -> dict[str, list[dict]]:
+    """ Create dictionary with readable date as a key and list of suitable clusters and their readable form. """
+    dated_clusters = {}
+    clusters.sort()
+    
+    for cluster in clusters:
+        cluster_date = Datetime.fromtimestamp(cluster * 60 * 60).strftime("%d/%m/%Y")
+        if cluster_date not in dated_clusters:
+            dated_clusters[cluster_date] = []
+        
+        cluster_dumps = list(get_dumps_range_for_cluster(cluster))
+        start_h = Datetime.fromtimestamp(cluster_dumps[0] * 60).strftime("%H:%M")
+        end_h = Datetime.fromtimestamp(cluster_dumps[-1] * 60).strftime("%H:%M")
+        
+        dated_clusters[cluster_date].append({
+            "cluster": cluster,
+            "timeinfo": f"{start_h} - {end_h}"
+        })
+            
+    return dated_clusters
+    

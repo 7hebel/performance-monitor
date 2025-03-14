@@ -1,4 +1,5 @@
 #monitorsList {
+    position: relative;
     max-width: 300px;
     min-width: 200px;
     width: 25%;
@@ -57,24 +58,6 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-}
-
-.monitorHeader {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    color: var(--text-color);
-    background-color: #2b2a2ad1;
-    border-bottom: 1px solid #ffffff0a;
-    border-radius: 8px 8px 0px 0px;
-    padding-block: 8px;
-    padding-inline: 12px;
-}
-
-.monitorHeader > h3 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 700;
 }
 
 .productInfo {
