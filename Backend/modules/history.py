@@ -105,13 +105,24 @@ def prepare_dated_clusters(clusters: list[int]) -> dict[str, list[dict]]:
             dated_clusters[cluster_date] = []
         
         cluster_dumps = list(get_dumps_range_for_cluster(cluster))
+        hour = Datetime.fromtimestamp(cluster_dumps[0] * 60).strftime("%H")
         start_h = Datetime.fromtimestamp(cluster_dumps[0] * 60).strftime("%H:%M")
         end_h = Datetime.fromtimestamp(cluster_dumps[-1] * 60).strftime("%H:%M")
         
         dated_clusters[cluster_date].append({
             "cluster": cluster,
-            "timeinfo": f"{start_h} - {end_h}"
+            "timeinfo": f"{start_h} - {end_h}",
+            "hour": hour
         })
             
     return dated_clusters
+    
+
+def get_cluster(cluster: int) -> dict | None:
+    filepath = "./data/history/" + str(cluster) + ".json"
+    if not os.path.exists(filepath):
+        return None
+    
+    with open(filepath, "r") as file:
+        return json.load(file)
     

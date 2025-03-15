@@ -70,20 +70,11 @@ class TestMetricGetters(unittest.TestCase):
             getter=test_counter
         )
         
-        # Reporting initial value regardless the state.
         time.sleep(0.15)
         self.assertIn(test_id.full(), state.UPDATES_BUFFER.updates, "AsyncReportingValueGetter didn't report initial value.")
 
-        # Initial value already reported, state.DISPLAYED_CATEGORY != "test", so shouldn't report.
-        state.DISPLAYED_CATEGORY = None
-        time.sleep(0.15)
-        self.assertEqual(state.UPDATES_BUFFER.updates[test_id.full()], 1, "AsyncReportingValueGetter shouldn't have changed value since inital_report but did.")
-
-        # state.DISPLAYED_CATEGORY set to "test", should report.
-        state.DISPLAYED_CATEGORY = "test"
         time.sleep(1)
         self.assertGreater(state.UPDATES_BUFFER.updates[test_id.full()], 1, "AsyncReportingValueGetter should have changed value since inital_report but didn't.")
-        state.DISPLAYED_CATEGORY = None
 
     
 class TestState(unittest.TestCase):

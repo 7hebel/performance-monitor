@@ -1,7 +1,6 @@
 from modules.identificators import Identificator
 from modules import metrics
 from modules import monitor
-from modules import logs
 
 import psutil
 

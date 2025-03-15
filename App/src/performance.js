@@ -1,8 +1,18 @@
 const MONITORS_LIST = document.getElementById("monitorsList");
 const MONITORS_CONTENTS = document.getElementById("monitorContents");
 const defined_page_containers = [];
-let REALTIME_MODE = true;
 
+
+function clearPerformancePage() {
+    Object.keys(REGISTERED_CHARTS).forEach(chartKey => delete REGISTERED_CHARTS[chartKey])
+
+    Array.from(MONITORS_LIST.children).forEach(monitor => {
+        if (monitor.id !== "performanceTimingInfo") monitor.remove();
+    })
+    Array.from(MONITORS_CONTENTS.children).forEach(monitorContent => {
+        monitorContent.remove();
+    })
+}
 
 function addMonitorHeader(monitorId, targetTitle) {
     const entry = document.createElement("div");
@@ -101,92 +111,5 @@ function buildMetric(type, identificator, title, details, color, container) {
         
         container.appendChild(kvMetric);
     }
-}
-
-
-function switchTiming() {
-    REALTIME_MODE = !REALTIME_MODE;
-    if (REALTIME_MODE) {
-        document.getElementById("performanceTimingName").textContent = "Realtime";
-        document.getElementById("performanceHistoryBtn").className = "fa-solid fa-clock-rotate-left";
-        document.documentElement.style.setProperty("--perf-timing-color", "#97c47e");
-
-        hideTimeTravelPanel();
-    } else {
-        document.getElementById("performanceTimingName").textContent = "Time Travel mode";
-        document.getElementById("performanceHistoryBtn").className = "fa-solid fa-arrow-left";
-        document.documentElement.style.setProperty("--perf-timing-color", "#ca6565");
-
-        fetchAndApplyHistoryPoints();
-    }
-}
-
-function fetchAndApplyHistoryPoints() {
-    const options = {
-        method: 'GET',
-        headers: {'Content-Type': 'application/json'},
-    };
-    console.log(HTTP_PROTO + "://" + API_ADDRESS + "/perf-history/points")
-    fetch(HTTP_PROTO + "://" + API_ADDRESS + "/perf-history/points", options)
-        .then(response => response.json())
-        .then(historyPoints => {
-            setupTimeTravelPanel(historyPoints);
-
-        })
-        .catch(error => {
-            console.error('Error while fetching performanceHistoryPoints', error);
-            switchTiming();
-        });
-}
-
-function hideTimeTravelPanel() {
-    const panel = document.getElementById("performanceTimetravelPanel");
-    const datesContainer = document.getElementById("timetravelDate");
-    const hoursContainer = document.getElementById("timetravelHours");
-    panel.setAttribute("hidden", "1");
-
-    Array.from(hoursContainer.children).forEach(opt => {
-        if (opt.value != 0) opt.remove();
-    })
-    Array.from(datesContainer.children).forEach(opt => {
-        if (opt.value != 0) opt.remove();
-    })
-
-}
-
-function setupTimeTravelPanel(historyPoints) {
-    const panel = document.getElementById("performanceTimetravelPanel");
-    const datesContainer = document.getElementById("timetravelDate");
-    const hoursContainer = document.getElementById("timetravelHours");
-    
-    panel.setAttribute("hidden", "0");
-
-    Object.keys(historyPoints).forEach(date => {
-        const option = document.createElement("option");
-        option.textContent = date;
-        option.value = date;
-        datesContainer.appendChild(option);
-    })
-
-    datesContainer.onchange = (e) => {
-        Array.from(hoursContainer.children).forEach(opt => {
-            if (opt.value != 0) opt.remove();
-        })
-        if (datesContainer.value == 0) return;
-
-        historyPoints[datesContainer.value].forEach(clusterData => {
-            const option = document.createElement("option");
-            option.textContent = clusterData.timeinfo;
-            option.value = clusterData.cluster;
-            hoursContainer.appendChild(option);
-        })
-    }
-}
-
-function queryTravelData() {
-    const cluster = document.getElementById("timetravelHours").value;
-    if (cluster == 0) return;
-
-    console.log(cluster)
 }
 

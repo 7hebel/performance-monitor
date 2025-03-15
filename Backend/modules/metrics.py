@@ -56,13 +56,6 @@ class AsyncReportingValueGetter:
         self.threaded_getter = Thread(target=self.async_getter_worker, daemon=True)
         self.threaded_getter.start()
 
-    def is_value_requested(self) -> bool:
-        """
-        To avoid unuseful getter's calls, check if value from this getter
-        is required by the app's state.
-        """
-        return state.DISPLAYED_CATEGORY == self.metric.identificator.category or isinstance(self.metric, ChartMetric)
-
     def report_update(self, value: MetricValueT) -> None:
         if self._last_report_t and int(time.time()) - self._last_report_t < 1:
             return # Last report was less than second ago.
@@ -76,8 +69,6 @@ class AsyncReportingValueGetter:
                 return
 
             time.sleep(0.1)
-            if not self.is_value_requested():
-                continue
 
             try:
                 new_value = self.metric.getter()

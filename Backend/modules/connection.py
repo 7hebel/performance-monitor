@@ -22,7 +22,7 @@ class EventType(StrEnum):
     RAISE_ALERT = "raise-alert"
     
     # Receive:
-    MONIOR_CHANGE = "monitor-change"
+    PERF_COMPOSITION_REQUEST = "perf-composition-request"
 
 
 server = fastapi.FastAPI()
@@ -45,7 +45,8 @@ async def get_performance_history_points(request: fastapi.Request) -> fastapi.re
         "31/12/2025": [
             {
                 "cluster": 483875,
-                "timeinfo": "12:00 - 12:59"    
+                "timeinfo": "12:00 - 12:59",
+                "hour": "12"
             }
         ],
         "01/01/2026": [...]
@@ -55,6 +56,17 @@ async def get_performance_history_points(request: fastapi.Request) -> fastapi.re
     dated_clusters = history.prepare_dated_clusters(all_clusters)
     logs.log("History", "info", f"Prepared and sent history points to: {request.client.host}:{request.client.port}")
     return fastapi.responses.JSONResponse(dated_clusters)
+
+
+@server.get("/perf-history/query-cluster/{cluster}")
+async def query_performance_history_cluster(cluster: int, request: fastapi.Request) -> fastapi.responses.JSONResponse:
+    cluster_data = history.get_cluster(cluster)
+    if cluster_data is None:
+        logs.log("History", "error", f"Cluster: `{cluster}` query failed for: {request.client.host}:{request.client.port} (not found)")
+        return fastapi.responses.JSONResponse({}, 404)
+
+    logs.log("History", "info", f"Sent cluster: `{cluster}` to: {request.client.host}:{request.client.port}")
+    return fastapi.responses.JSONResponse(cluster_data)
 
 
 @server.websocket("/ws-stream")
@@ -100,9 +112,14 @@ async def handle_ws_message(msg: dict) -> None:
     event = msg.get("event")
     data = msg.get("data")
     
-    if event == EventType.MONIOR_CHANGE:
-        logs.log("Connection", "info", f"Switched active category to: `{data}`")
-        state.DISPLAYED_CATEGORY = data
+    if event == EventType.PERF_COMPOSITION_REQUEST:
+        logs.log("Connection", "info", f"Client requested performance composition data.")
+        composition_data = monitor.prepare_composition_data()
+        message = {
+            "event": EventType.PERF_COMPOSITION_DATA,
+            "data": composition_data
+        }
+        await client.send_json(message)
     
 
 def updates_sender() -> None:

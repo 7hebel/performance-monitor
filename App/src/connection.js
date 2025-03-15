@@ -11,6 +11,7 @@ const EV_PERF_ADD_MONITOR = "perf-add-monitor";
 const EV_PERF_REMOVE_MONITOR = "perf-remove-monitor";
 const EV_RAISE_ALERT = "raise-alert";
 const EV_MONITOR_CHANGE = "monitor-change";
+const EV_REQUEST_COMPOSITION = "perf-composition-request";
 
 
 function setConnectionStatus(status) {

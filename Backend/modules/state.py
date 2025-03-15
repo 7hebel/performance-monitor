@@ -4,9 +4,6 @@ if TYPE_CHECKING:
     from modules import metrics 
     
 
-DISPLAYED_CATEGORY: str | None = None
-
-
 class _ValueUpdatesBuffer:
     """
     Dynamic metrics will report their updates to this buffer which will be flushed

@@ -11,6 +11,7 @@
     <script defer src="src/tabs.js"></script>
     <script defer src="src/performance.js"></script>
     <script defer src="src/connection.js"></script>
+    <script defer src="src/timetravel.js"></script>
     <script src="https://kit.fontawesome.com/e526ea242b.js" crossorigin="anonymous"></script>
     <title>Performance Monitor</title>
 </head>
@@ -53,7 +54,7 @@
                 <div id="performanceTimingInfo">
                     <div class="dot"></div>
                     <span id="performanceTimingName">Realtime</span>
-                    <i id="performanceHistoryBtn" class="fa-solid fa-clock-rotate-left" onclick="switchTiming()"></i>
+                    <i id="performanceHistoryBtn" class="fa-solid fa-clock-rotate-left" onclick="switchTimeTravelMode()"></i>
                 </div>
             </div>
             <div id="monitorContents"></div>
@@ -61,7 +62,7 @@
 
     </div>
 
-    <div id="performanceTimetravelPanel" hidden="0">
+    <div id="performanceTimetravelPanel" hidden="1">
         <select class="performanceTimetravelSelect" id="timetravelDate">
             <option value="0">Date</option>
         </select>
@@ -72,6 +73,15 @@
             <i class="fa-solid fa-play"></i>
             Travel
         </button>
+        <div class="tabsSep" style="margin-inline: 8px;"></div>
+
+        <i class="timetravelChagneDumpBtn fa-solid fa-angle-left" onclick="previousTimetravelMinute()"></i>
+        <p id="timetravelCurrentTime">
+            <span id="timetravelCurrentHour">-</span>:<span id="timetravelCurrentMinute">-</span>:<span id="timetravelCurrentSecond">-</span>
+        </p>
+        <i class="timetravelChagneDumpBtn fa-solid fa-angle-right" onclick="nextTimetravelMinute()"></i>
+        <div class="tabsSep" style="margin-inline: 8px;"></div>
+        <i class="timetravelChagneDumpBtn fa-solid fa-xmark" style="margin-right: 8px;" onclick="switchTimeTravelMode()"></i>
     </div>
 </body>
 </html>
