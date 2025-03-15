@@ -1,5 +1,6 @@
 from modules import monitor
 from modules import metrics
+from modules import state
 from modules import logs
 
 from datetime import datetime as Datetime
@@ -83,7 +84,8 @@ def handle_updates(updates: dict[str, metrics.MetricValueT]) -> None:
             minute_updates_buffer[metric_id].append(value)
         else:
             minute_updates_buffer[metric_id] = [value]
-            
+        
+state.perf_metrics_updates_buffer.attach_flush_listener(handle_updates)    
     
 def get_all_clusters() -> list[int]:
     clusters = []

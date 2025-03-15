@@ -6,12 +6,15 @@ let reconnectTimeout = null;
 let gotPerfComposition = false;
 
 const EV_PERF_COMPOSITION_DATA = "perf-composition-data";
-const EV_PERF_METRICS_UPDATE = "perf-metrics-update";
+const EV_UPDATE_PACKET = "update-packet"
 const EV_PERF_ADD_MONITOR = "perf-add-monitor";
 const EV_PERF_REMOVE_MONITOR = "perf-remove-monitor";
 const EV_RAISE_ALERT = "raise-alert";
 const EV_MONITOR_CHANGE = "monitor-change";
 const EV_REQUEST_COMPOSITION = "perf-composition-request";
+
+const PACKET_PERFORMANCE = "perf-metrics";
+const PACKET_PROCESSES = "proc-stats";
 
 
 function setConnectionStatus(status) {
@@ -73,15 +76,16 @@ async function handleMessage(evtype, data) {
         console.log(`Built ${data.length} performance monitors.`);
     }
 
-    if (evtype == EV_PERF_METRICS_UPDATE) {
+    if (evtype == EV_UPDATE_PACKET) {
         if (!REALTIME_MODE) return;
+
         Object.entries(data).forEach(
-            ([id, value]) => {
-                const element = document.getElementById(id);
-                if (element === null) updateChart(id, value);
-                else document.getElementById(id).textContent = value;
+            ([packetId, updates]) => {
+                if (packetId == PACKET_PERFORMANCE) handlePerformanceUpdatePacket(updates);
+                if (packetId == PACKET_PROCESSES) console.warn("Handling PACKET_PROCESSES not implemented yet.")
             }
         )
+
     }
 
     if (evtype == EV_PERF_ADD_MONITOR) {

@@ -3,6 +3,17 @@ const MONITORS_CONTENTS = document.getElementById("monitorContents");
 const defined_page_containers = [];
 
 
+function handlePerformanceUpdatePacket(packet) {
+    Object.entries(packet).forEach(
+        ([id, value]) => {
+            const element = document.getElementById(id);
+            if (element === null) updateChart(id, value);
+            else document.getElementById(id).textContent = value;
+        }
+    );
+}
+
+
 function clearPerformancePage() {
     Object.keys(REGISTERED_CHARTS).forEach(chartKey => delete REGISTERED_CHARTS[chartKey])
 

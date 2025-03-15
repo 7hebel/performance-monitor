@@ -1,10 +1,10 @@
-import fastapi.middleware
-import fastapi.middleware.cors
 from modules import history
 from modules import monitor
 from modules import state
 from modules import logs
 
+import fastapi.middleware.cors
+import fastapi.middleware
 from enum import StrEnum
 import threading
 import fastapi
@@ -19,6 +19,7 @@ class EventType(StrEnum):
     PERF_ADD_MONITOR = "perf-add-monitor"
     PERF_REMOVE_MONITOR = "perf-remove-monitor"
     PERF_METRICS_UPDATE = "perf-metrics-update"
+    UPDATE_PACKET = "update-packet"
     RAISE_ALERT = "raise-alert"
     
     # Receive:
@@ -123,19 +124,20 @@ async def handle_ws_message(msg: dict) -> None:
     
 
 def updates_sender() -> None:
-    """ Sent all updates from last second and clean updates queue. """
+    """ Sent updates from all buffers from the last second and clean updates queues. """
     global client
     
     while True:
         if client is None:
             continue
         
-        updates = state.UPDATES_BUFFER.flush()
-        history.handle_updates(updates)
+        updates_packet = {}
+        for buffer in state.BUFFERS:
+            updates_packet.update(buffer.flush())
         
         message = {
-            "event": EventType.PERF_METRICS_UPDATE,
-            "data": updates
+            "event": EventType.UPDATE_PACKET,
+            "data": updates_packet
         }
 
         try:

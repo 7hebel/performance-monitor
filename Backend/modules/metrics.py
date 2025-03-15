@@ -37,7 +37,7 @@ def lazy_static_getter(identificator: identificators.Identificator, getter: Call
 
     def evaluate_and_report() -> None:
         value = getter()
-        state.UPDATES_BUFFER.insert_update(identificator, value)
+        state.perf_metrics_updates_buffer.insert_update(identificator, value)
         target_static_getter.value = value
         logs.log("LazyGetter", "info", f"Lazy StaticValueGetter finished job for: {identificator.full()} in: {timer.measure()}")
 
@@ -61,7 +61,7 @@ class AsyncReportingValueGetter:
             return # Last report was less than second ago.
 
         self._last_report_t = int(time.time())
-        state.UPDATES_BUFFER.insert_update(self.metric.identificator, value)
+        state.perf_metrics_updates_buffer.insert_update(self.metric.identificator, value)
 
     def async_getter_worker(self) -> None:
         while True:

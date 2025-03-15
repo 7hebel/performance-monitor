@@ -48,8 +48,8 @@ class TestMetricGetters(unittest.TestCase):
         self.assertEqual(lazy_getter(), "-", "Not evaluated lazy_static_getter returned not-placeholder value.")
         time.sleep(0.4)
         self.assertEqual(lazy_getter(), lazy_value, f"lazy_static_getter should be evaluated correctly at this point but returned different value: {lazy_getter()}")
-        self.assertIn(lazy_test_id.full(), state.UPDATES_BUFFER.updates, "lazy_static_getter evaluated correctly but didn't report change to the state.UPDATES_BUFFER")
-        self.assertEqual(state.UPDATES_BUFFER.updates[lazy_test_id.full()], lazy_value, f"lazy_static_getter evaluated value correctly, but reported invalid value")
+        self.assertIn(lazy_test_id.full(), state.perf_metrics_updates_buffer.updates, "lazy_static_getter evaluated correctly but didn't report change to the state.UPDATES_BUFFER")
+        self.assertEqual(state.perf_metrics_updates_buffer.updates[lazy_test_id.full()], lazy_value, f"lazy_static_getter evaluated value correctly, but reported invalid value")
 
     def test_async_reporting_getter(self) -> None:
         dynatrace.ENABLE_LOGGING = False
@@ -71,15 +71,15 @@ class TestMetricGetters(unittest.TestCase):
         )
         
         time.sleep(0.15)
-        self.assertIn(test_id.full(), state.UPDATES_BUFFER.updates, "AsyncReportingValueGetter didn't report initial value.")
+        self.assertIn(test_id.full(), state.perf_metrics_updates_buffer.updates, "AsyncReportingValueGetter didn't report initial value.")
 
         time.sleep(1)
-        self.assertGreater(state.UPDATES_BUFFER.updates[test_id.full()], 1, "AsyncReportingValueGetter should have changed value since inital_report but didn't.")
+        self.assertGreater(state.perf_metrics_updates_buffer.updates[test_id.full()], 1, "AsyncReportingValueGetter should have changed value since inital_report but didn't.")
 
     
 class TestState(unittest.TestCase):
     def test_updates_buffer(self) -> None:
-        buffer = state._ValueUpdatesBuffer()
+        buffer = state._ValueUpdatesBuffer("test")
         
         identificators_category = "bufferTest"
         id1 = identificators.Identificator(identificators_category, "1")
