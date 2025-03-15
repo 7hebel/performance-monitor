@@ -16,7 +16,7 @@
     <title>Performance Monitor</title>
 </head>
 <body>
-    <div id="tabsContainer">
+    <div id="tabsContainer" class="shine">
         <div class="tab" active="1" onclick="switchTab(this, `tab-performance`)">
             <i class="tabIcon fa-solid fa-chart-line"></i>
             <p class="tabTitle">Performance</p>
@@ -42,7 +42,7 @@
             <p class="tabTitle">Logs</p>
         </div>
 
-        <p id="connectionStatus" status="0">
+        <p id="connectionStatus" status="0" class="shine">
             <i class="fa-solid fa-wifi"></i>
         </p>
     </div>
@@ -50,19 +50,19 @@
     <div id="tabsViews">
 
         <div class="tabView" id="tab-performance" active="1">
-            <div id="monitorsList">
+            <div id="monitorsList" class="shine">
                 <div id="performanceTimingInfo">
                     <div class="dot"></div>
                     <span id="performanceTimingName">Realtime</span>
                     <i id="performanceHistoryBtn" class="fa-solid fa-clock-rotate-left" onclick="switchTimeTravelMode()"></i>
                 </div>
             </div>
-            <div id="monitorContents"></div>
+            <div id="monitorContents" class="shine"></div>
         </div>
 
     </div>
 
-    <div id="performanceTimetravelPanel" hidden="1">
+    <div id="performanceTimetravelPanel" hidden="1" class="shine">
         <select class="performanceTimetravelSelect" id="timetravelDate">
             <option value="0">Date</option>
         </select>

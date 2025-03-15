@@ -4,6 +4,7 @@
 :root {
     --accent-color: #242334;
     --text-color: #e1e0e0;
+    --shine-border: inset 0px 1px 0px 0px #98989829;
     --perf-timing-color: #97c47e;
     --perf-timetravel-progress: 43%;
 }
@@ -24,6 +25,10 @@ body {
     margin: 0;
     gap: 8px;
     overflow-y: hidden;
+}
+
+.shine {
+    box-shadow: var(--shine-border);
 }
 
 #tabsContainer {
@@ -107,6 +112,7 @@ body {
 
 .tab[active="1"] {
     background-color: #ffffff21;
+    box-shadow: var(--shine-border);
 }
 
 .tabsSep {
