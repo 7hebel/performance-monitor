@@ -4,10 +4,7 @@ if TYPE_CHECKING:
     from modules import metrics 
     
 
-BUFFERS = []
-
-
-class _ValueUpdatesBuffer[KeyT, ValT]:
+class UpdatesBuffer[KeyT, ValT]:
     """
     Contain multiple updates from different services. 
     Buffer is flushed by the thread responsible for sync data sending. 
@@ -21,7 +18,7 @@ class _ValueUpdatesBuffer[KeyT, ValT]:
         BUFFERS.append(self)
 
     def insert_update(self, metric_id: KeyT, value: ValT) -> None:
-        self.updates[metric_id.full()] = value
+        self.updates[str(metric_id)] = value
 
     def attach_flush_listener(self, listener_fn: Callable[[dict[KeyT, ValT]], None]) -> None:
         self._flush_pipe_fn = listener_fn
@@ -35,7 +32,7 @@ class _ValueUpdatesBuffer[KeyT, ValT]:
         return { self.buffer_name: updates }
 
 
-perf_metrics_updates_buffer = _ValueUpdatesBuffer["identificators.Identificator", "metrics.MetricValueT"]("perf-metrics")
-# perf_metrics_updates_buffer.attach_flush_listener(history.handle_updates)
+BUFFERS: list[UpdatesBuffer] = []
 
-processes_stats_updates_buffer = _ValueUpdatesBuffer[str, dict]("proc-stats")
+perf_metrics_updates_buffer = UpdatesBuffer["identificators.Identificator | str", "metrics.MetricValueT"]("perf-metrics")
+processes_stats_updates_buffer = UpdatesBuffer[str, dict]("proc-stats")

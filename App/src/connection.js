@@ -35,9 +35,12 @@ function onSocketFailure() {
 
 function setupSocket() {
     socket = new WebSocket(`ws://${API_ADDRESS}/ws-stream`);
+
     socket.addEventListener('open', (event) => {
-        console.log("Connection opened") 
+        console.log("Connection opened");
+        _sendMessageToServer(EV_REQUEST_COMPOSITION);
     });
+    
     socket.addEventListener('message', (event) => {
         setConnectionStatus(true);
         const message = JSON.parse(event.data);
@@ -54,7 +57,7 @@ function setupSocket() {
 
 setupSocket();
 
-function _sendMessageToServer(evtype, data) {
+function _sendMessageToServer(evtype, data = {}) {
     const message = {
         event: evtype,
         data: data
@@ -85,7 +88,6 @@ async function handleMessage(evtype, data) {
                 if (packetId == PACKET_PROCESSES) console.warn("Handling PACKET_PROCESSES not implemented yet.")
             }
         )
-
     }
 
     if (evtype == EV_PERF_ADD_MONITOR) {
@@ -101,6 +103,3 @@ async function handleMessage(evtype, data) {
     }
 }
 
-function announceMonitorChange(monitorId) {
-    _sendMessageToServer(EV_MONITOR_CHANGE, monitorId)
-}

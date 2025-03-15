@@ -46,8 +46,7 @@ By default, all metrics are displayed in their own row. To group a few metrics i
 Metric's getter is a function that returns a asset's value (like number of processes or usage of CPU).
 There are two types of getters:
 
-* **`AsyncReportingValueGetter`** - Used for a changing values like usage of CPU. This getter creates new thread that will check the output of getting function and if the value has changed, it **reports update** to the `state.UPDATES_BUFFER`. The getting function is called only if the output is needed - it's either displayed on the current page or it is a chart that needs constant updates.
-Another thread (`modules.connection.updates_sender`) is checking every second for new reports in the `state.UPDATES_BUFFER`. If any changes has been reported, it packs them and sends to the Frontend WS client in single message. After calling getter for the first time it will report the value regardless app state to ensure placeholder will be changed with a value.
+* **`AsyncReportingValueGetter`** - Used for a changing values like usage of CPU. This getter creates new thread that will check the output of getting function and if the value has changed, it **reports update** to the `buffer`. Another thread (`modules.connection.updates_sender`) is checking every second for new reports in the `buffer`. If any changes has been reported, it packs them and sends to the Frontend WS client in single message. After calling getter for the first time it will report the value regardless app state to ensure placeholder will be changed with a value.
 
 * **`StaticValueGetter`** - Used for a constant values. Value of this getter is included in the initial composition message.
 

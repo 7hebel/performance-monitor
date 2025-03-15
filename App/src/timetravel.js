@@ -18,7 +18,7 @@ function switchTimeTravelMode() {
         clearPerformancePage();
         resetTicker();
 
-        _sendMessageToServer(EV_REQUEST_COMPOSITION, {});
+        _sendMessageToServer(EV_REQUEST_COMPOSITION);
         console.log("Exit time travel mode");
     } else {
         document.getElementById("performanceTimingName").textContent = "Time Travel mode";

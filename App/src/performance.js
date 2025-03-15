@@ -87,8 +87,6 @@ function buildDataPage(monitorId, targetTitle, productInfo, color, metrics) {
 
 
 function switchMonitor(monitorId) {
-    announceMonitorChange(monitorId);
-
     defined_page_containers.forEach(m => m.setAttribute("active", "0"));
 
     const newMonitor = document.getElementById(`view-${monitorId}`);

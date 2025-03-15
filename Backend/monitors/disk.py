@@ -100,8 +100,8 @@ def disk_updates_checker():
                     "event": connection.EventType.PERF_ADD_MONITOR,
                     "data": monitor_data
                 }
-                if connection.client:
-                    asyncio.run(connection.client.send_json(message))
+                if connection.ws_client:
+                    asyncio.run(connection.ws_client.send_json(message))
         
         removed_partitons = []
         for reg_partition in registered_partitions:
@@ -115,8 +115,8 @@ def disk_updates_checker():
                     "event": connection.EventType.PERF_REMOVE_MONITOR,
                     "data": reg_monitor.get_category()
                 }
-                if connection.client:
-                    asyncio.run(connection.client.send_json(message))
+                if connection.ws_client:
+                    asyncio.run(connection.ws_client.send_json(message))
 
         for rm_partition in removed_partitons:
             registered_partitions.pop(rm_partition)

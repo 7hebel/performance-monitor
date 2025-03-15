@@ -1,10 +1,3 @@
-// {
-//    identifier: {
-//        dataset: [],
-//        metricChart: ApexChart(),       
-//        previewChart: ApexChart()       
-//    }
-// }
 const REGISTERED_CHARTS = {};
 
 function __blankDataset() {

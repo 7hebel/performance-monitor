@@ -3,14 +3,26 @@ from modules import monitor
 from modules import state
 from modules import logs
 
-import fastapi.middleware.cors
-import fastapi.middleware
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import fastapi
 from enum import StrEnum
 import threading
-import fastapi
 import asyncio
 import uvicorn
 import time
+
+
+server = fastapi.FastAPI()
+server.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+ws_client: fastapi.WebSocket | None = None
 
 
 class EventType(StrEnum):
@@ -21,141 +33,104 @@ class EventType(StrEnum):
     PERF_METRICS_UPDATE = "perf-metrics-update"
     UPDATE_PACKET = "update-packet"
     RAISE_ALERT = "raise-alert"
-    
+
     # Receive:
     PERF_COMPOSITION_REQUEST = "perf-composition-request"
 
 
-server = fastapi.FastAPI()
-server.add_middleware(
-    fastapi.middleware.cors.CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-client: fastapi.WebSocket | None = None
-
-
 @server.get("/perf-history/points")
-async def get_performance_history_points(request: fastapi.Request) -> fastapi.responses.JSONResponse:
-    """
-    Return format: 
-    {
-        "31/12/2025": [
-            {
-                "cluster": 483875,
-                "timeinfo": "12:00 - 12:59",
-                "hour": "12"
-            }
-        ],
-        "01/01/2026": [...]
-    }
-    """
-    all_clusters = history.get_all_clusters()
-    dated_clusters = history.prepare_dated_clusters(all_clusters)
+async def get_performance_history_points(request: fastapi.Request) -> JSONResponse:
+    """ Return saved history metadata groupped by date. """
+    dated_clusters = history.prepare_dated_clusters()
     logs.log("History", "info", f"Prepared and sent history points to: {request.client.host}:{request.client.port}")
-    return fastapi.responses.JSONResponse(dated_clusters)
+    return JSONResponse(dated_clusters)
 
 
 @server.get("/perf-history/query-cluster/{cluster}")
-async def query_performance_history_cluster(cluster: int, request: fastapi.Request) -> fastapi.responses.JSONResponse:
+async def query_performance_history_cluster(cluster: int, request: fastapi.Request) -> JSONResponse:
+    """ Returns cluster's content containing historical data from a hour. """
     cluster_data = history.get_cluster(cluster)
     if cluster_data is None:
         logs.log("History", "error", f"Cluster: `{cluster}` query failed for: {request.client.host}:{request.client.port} (not found)")
-        return fastapi.responses.JSONResponse({}, 404)
+        return JSONResponse({}, 404)
 
     logs.log("History", "info", f"Sent cluster: `{cluster}` to: {request.client.host}:{request.client.port}")
-    return fastapi.responses.JSONResponse(cluster_data)
+    return JSONResponse(cluster_data)
 
 
 @server.websocket("/ws-stream")
 async def handle_ws_connection(websocket: fastapi.WebSocket):
-    global client
-    
-    if client:
-        logs.log("Connection", "warn", f"Refused incoming WS connection from: {websocket.client.host}:{websocket.client.port} as current has not been closed.")
-        return
-        
-    composition_data = monitor.prepare_composition_data()
-    initial_message = {
-        "event": EventType.PERF_COMPOSITION_DATA,
-        "data": composition_data
-    }
-    
-    logs.log("Connection", "info", f"Accepting incoming WS connection from: {websocket.client.host}:{websocket.client.port}")
-    
-    await websocket.accept()
-    client = websocket 
-    
-    try:
-        await websocket.send_json(initial_message)
-        logs.log("Connection", "info", f"Sent initial message containing {len(composition_data)} monitors.")
-        
-        while True:
-            try:
-                data = await websocket.receive_json()
-                await handle_ws_message(data)
-                
-            except fastapi.WebSocketDisconnect:
-                logs.log("Connection", "warn", f"Disconnected WS connection with: {websocket.client.host}:{websocket.client.port} (reading error)")
-                await websocket.close()
-                client = None
+    global ws_client
+    if ws_client:
+        return logs.log("Connection", "warn", f"Refused incoming WS connection from: {websocket.client.host}:{websocket.client.port} as current has not been closed.")
 
-    except fastapi.WebSocketDisconnect:
-        logs.log("Connection", "warn", f"Disconnected WS connection with: {websocket.client.host}:{websocket.client.port} (connection error)")
-        await websocket.close()
-        client = None
+    # Accept incoming connection and finish handshake.
+    await websocket.accept()
+    await websocket.send_json({})
+    ws_client = websocket
+    logs.log("Connection", "info", f"Accepted incoming WS connection from: {websocket.client.host}:{websocket.client.port}")
+
+    # Listen to incoming WS message and delegate them to handler. Detect client's disconnection.
+    while True:
+        try:
+            data = await websocket.receive_json()
+            await handle_ws_message(data)
+
+        except fastapi.WebSocketDisconnect:
+            logs.log("Connection", "warn", f"Disconnected WS connection with: {websocket.client.host}:{websocket.client.port} (reading error)")
+            await websocket.close()
+            ws_client = None
 
 
 async def handle_ws_message(msg: dict) -> None:
+    """ Handle messages coming from WebSocket's client. """
     event = msg.get("event")
     data = msg.get("data")
-    
+
     if event == EventType.PERF_COMPOSITION_REQUEST:
         logs.log("Connection", "info", f"Client requested performance composition data.")
-        composition_data = monitor.prepare_composition_data()
+
         message = {
             "event": EventType.PERF_COMPOSITION_DATA,
-            "data": composition_data
+            "data": monitor.prepare_composition_data()
         }
-        await client.send_json(message)
-    
+        await ws_client.send_json(message)
+
 
 def updates_sender() -> None:
-    """ Sent updates from all buffers from the last second and clean updates queues. """
-    global client
-    
+    """ Sent awaiting updates packets from all buffers. """
+    global ws_client
+
     while True:
-        if client is None:
+        time.sleep(1)
+        if ws_client is None:
             continue
         
+        # Prepare non-blank buffers packet.
         updates_packet = {}
         for buffer in state.BUFFERS:
-            updates_packet.update(buffer.flush())
-        
+            buffer_content = buffer.flush()
+            if buffer_content[buffer.buffer_name]:
+                updates_packet.update(buffer_content)
+
         message = {
             "event": EventType.UPDATE_PACKET,
             "data": updates_packet
         }
 
         try:
-            asyncio.run(client.send_json(message))
+            asyncio.run(ws_client.send_json(message))
         except RuntimeError:
-            logs.log("Connection", "warn", f"Disconnected WS connection with: {client.client.host}:{client.client.port} (write error)")
-            client = None
-            
-        time.sleep(1)
+            logs.log("Connection", "warn", f"Disconnected from: {ws_client.client.host}:{ws_client.client.port} (write error)")
+            ws_client = None
 
-
-threading.Thread(target=updates_sender, daemon=True).start()
 
 def start_server(port: int = 50506):
+    threading.Thread(target=updates_sender, daemon=True).start()
+    
     uvicorn.run(
-        server, 
-        host="localhost", 
-        port=port, 
-        log_level="critical",
+        server,
+        host="localhost",
+        port=port,
+        # log_level="critical",
     )
-

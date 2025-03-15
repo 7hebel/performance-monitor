@@ -9,13 +9,14 @@ import requests
 env_config = dotenv_values("../.env")
 DYNATRACE_ENVIRONMENT_ID = env_config.get("DT-EnvId")
 DYNATRACE_LOGS_INGEST_API_KEY = env_config.get("DT-Logs")
-ENABLE_LOGGING = True
 
-    
-def save_log_to_dynatrace(log: "LogEntity"):
-    if not ENABLE_LOGGING or DYNATRACE_ENVIRONMENT_ID is None or DYNATRACE_LOGS_INGEST_API_KEY is None:
+ENABLE_LOGGING = DYNATRACE_ENVIRONMENT_ID and DYNATRACE_LOGS_INGEST_API_KEY
+
+
+def save_log_to_dynatrace(log: "LogEntity") -> None:
+    if not ENABLE_LOGGING:
         return
-    
+
     url = f"https://{DYNATRACE_ENVIRONMENT_ID}.live.dynatrace.com/api/v2/logs/ingest"
     headers = {
         "Content-Type": "application/json; charset=utf-8",
@@ -29,8 +30,7 @@ def save_log_to_dynatrace(log: "LogEntity"):
             "service.name": log.subject,
         }
     ]
-    
+
     response = requests.post(url, headers=headers, json=data)
     if response.status_code != 204:
         print(f"[DYNATRACE] Saving log resulted in abnormal status_code: {response.status_code} - {response.text}")
-    

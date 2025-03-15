@@ -96,9 +96,10 @@ def get_all_clusters() -> list[int]:
     return clusters
 
 
-def prepare_dated_clusters(clusters: list[int]) -> dict[str, list[dict]]:
+def prepare_dated_clusters() -> dict[str, list[dict]]:
     """ Create dictionary with readable date as a key and list of suitable clusters and their readable form. """
     dated_clusters = {}
+    clusters = get_all_clusters()
     clusters.sort()
     
     for cluster in clusters:

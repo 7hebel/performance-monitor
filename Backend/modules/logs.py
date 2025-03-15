@@ -10,7 +10,9 @@ import time
 colorama.init()
 
 
-class Timer:
+class CodeTimer:
+    """ Used to measure code execution time. """
+
     def __init__(self) -> None:
         self.start = int(time.time())
         
@@ -32,11 +34,6 @@ class LogEntity:
     subject: str
     timestamp: int
 
-
-def _get_log_filepath() -> str:
-    filepath = "./data/logs/" + Datetime.now().strftime("%Y_%m_%d") + ".log"
-    return filepath
-   
         
 def _print_log(log: LogEntity) -> None:
     log_content = f"({log.subject}) "
@@ -53,9 +50,10 @@ def _print_log(log: LogEntity) -> None:
 
 
 def _save_log(log: LogEntity) -> None:
-    filepath = _get_log_filepath()
+    filepath = "./data/logs/" + Datetime.now().strftime("%Y_%m_%d") + ".log"
     time_info = Datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     log_content = f"{time_info} ({log.subject}) {log.status}:  {log.content}\n"
+    
     with open(filepath, "a+") as file:
         file.write(log_content)
     

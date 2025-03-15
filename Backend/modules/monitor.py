@@ -16,18 +16,18 @@ class MonitorBase:
         """ Disable all monitor's getters, remove monitor from register. """
         if self in MONITORS_REGISTER:
             MONITORS_REGISTER.remove(self)
-        disabled_count = 0
+        disabled_metrics_count = 0
 
         for metric_or_row in self.metrics_struct:
             if isinstance(metric_or_row, metrics.MetricsRow):
                 for metric in metric_or_row.get_all():
                     metric._abort_getter = True
-                    disabled_count += 1
+                    disabled_metrics_count += 1
             else:
                 metric_or_row._abort_getter = True
-                disabled_count += 1
+                disabled_metrics_count += 1
                 
-        logs.log("Monitor", "warn", f"Destroyed monitor: {self.target_title} ({disabled_count} AsyncGetters disabled)")
+        logs.log("Monitor", "warn", f"Destroyed monitor: {self.target_title} ({disabled_metrics_count} AsyncGetters disabled)")
         
     def get_category(self) -> str:
         return self.metrics_struct[0].identificator.category

@@ -28,17 +28,17 @@ def lazy_static_getter(identificator: identificators.Identificator, getter: Call
     If obtaining an static information takes too long, using this getter is recomended.
     Creates StaticValueGetter with a placeholder value, starts background evaluation job and
       immediately returns a blank getter. When desired value is calculated in the background process,
-      it reports itself to the UPDATES_BUFFER and the change is sent in the next updates packet.
+      it reports itself to the updates buffer and the change is sent in the next updates packet.
       The value is also assigned to the previously created blank getter, so in case of Frontend
       reconnection it doesn't have to be reevaluated.
     """
     target_static_getter = StaticValueGetter("-")
-    timer = logs.Timer()
+    timer = logs.CodeTimer()
 
     def evaluate_and_report() -> None:
         value = getter()
-        state.perf_metrics_updates_buffer.insert_update(identificator, value)
         target_static_getter.value = value
+        state.perf_metrics_updates_buffer.insert_update(identificator, value)
         logs.log("LazyGetter", "info", f"Lazy StaticValueGetter finished job for: {identificator.full()} in: {timer.measure()}")
 
     executor = Thread(target=evaluate_and_report, daemon=True)
@@ -65,21 +65,22 @@ class AsyncReportingValueGetter:
 
     def async_getter_worker(self) -> None:
         while True:
+            time.sleep(0.1)
+
             if getattr(self.metric, "_abort_getter", False):
                 return
 
-            time.sleep(0.1)
-
             try:
                 new_value = self.metric.getter()
+
             except Exception as error:
                 if not self.metric.suppress_errors:
-                    new_value = "-"
                     logs.log("AsyncGetterWorker", "error", f"getter of {self.metric.identificator.full()} raised exception: {error}")
+                    continue
 
+            # Dont send update if value has not been changed and it is not a chart.
             if not isinstance(self.metric, ChartMetric):
                 if new_value == self._prev_value:
-                    # Dont send update if value has not been changed and it is not a chart.
                     continue
 
             self._prev_value = new_value

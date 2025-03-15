@@ -79,7 +79,7 @@ class TestMetricGetters(unittest.TestCase):
     
 class TestState(unittest.TestCase):
     def test_updates_buffer(self) -> None:
-        buffer = state._ValueUpdatesBuffer("test")
+        buffer = state.UpdatesBuffer("test")
         
         identificators_category = "bufferTest"
         id1 = identificators.Identificator(identificators_category, "1")
