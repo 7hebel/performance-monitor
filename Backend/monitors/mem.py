@@ -1,16 +1,13 @@
+from dmi import dmi_provider
+
 from modules.identificators import Identificator
 from modules import metrics
 from modules import monitor
 
 import psutil
 
-
+dmi_mem_data = dmi_provider.DMI_DATA["memory device"][0]
 mem_info = psutil.virtual_memory()
-
-def get_mem_speed() -> str:
-    import wmi
-    speed = wmi.WMI().Win32_PhysicalMemory()[0].Speed
-    return f"{speed} MT/s"
 
 
 class MEM_Monitor(monitor.MonitorBase):
@@ -49,7 +46,7 @@ class MEM_Monitor(monitor.MonitorBase):
             metrics.KeyValueMetric(
                 identificator=Identificator("mem", "speed"),
                 title="Speed",
-                getter=metrics.lazy_static_getter(Identificator("mem", "speed"), get_mem_speed),
+                getter=metrics.StaticValueGetter(dmi_mem_data["Speed"]),
                 important_item=False
             )
         ]

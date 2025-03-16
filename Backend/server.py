@@ -1,4 +1,4 @@
-# Ensure data files paths exist.
+import threading
 import os
 
 DATA_PATH = "./data/"
@@ -14,5 +14,7 @@ from modules import connection
 from modules import processes
 import monitors
 
+threading.Thread(target=processes.processes_checker, daemon=True).start()
 
 connection.start_server()
+

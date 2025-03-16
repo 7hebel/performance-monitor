@@ -10,16 +10,16 @@ let processesTable = new DataTable("#processesTable", {
         topStart: null,
         topEnd: null
     },
-    rowId: row => `proc-row-${row.pid}`,
+    rowId: row => `proc-row-${row.name}`,
     columns: [
         { 
             data: 'name', 
             className: "dt-head-center dt-td-name" 
         },
         { 
-            data: 'pid',
+            data: 'proc_count',
             className: "dt-head-center dt-body-left dt-td-less-important",
-            width: "100px"
+            width: "120px"
         },
         {
             data: 'cpu_usage',
@@ -32,12 +32,7 @@ let processesTable = new DataTable("#processesTable", {
         {
             data: 'threads', 
             width: "140px",
-            className: "dt-head-center dt-body-center dt-td-less-important",
-        },
-        {
-            data: 'started',
-            width: "200px",
-            className: "dt-head-center dt-body-center dt-td-less-important",
+            className: "dt-head-center dt-body-left dt-td-less-important",
         },
         {
             className: "dt-head-center dt-body-center",
@@ -69,7 +64,7 @@ function handleProcessesUpdatePacket(packet) {
 
 processesTable.on('click', 'button', function (e) {
     let data = processesTable.row(e.target.closest('tr')).data();
-    _sendMessageToServer(EV_REQUEST_PROC_KILL, data.pid);
-    console.log("Sent process kill request: ", data.pid);
+    _sendMessageToServer(EV_REQUEST_PROC_KILL, data.name);
+    console.log("Sent process kill request: ", data.name);
 });
 

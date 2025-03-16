@@ -1,17 +1,19 @@
+from dmi import dmi_provider
+
 from modules.identificators import Identificator
 from modules import metrics
 from modules import monitor
 
 import psutil
-import cpuinfo
 
-cpu_info = cpuinfo.get_cpu_info()
+dmi_cpu_data = dmi_provider.DMI_DATA["processor"][0]
+dmi_cache_data = dmi_provider.DMI_DATA["cache"]
 
 
 class CPU_Monitor(monitor.MonitorBase):
     def __init__(self) -> None:
         self.target_title = "CPU"
-        self.product_info = cpu_info["brand_raw"]
+        self.product_info = dmi_cpu_data["Version"]
         self.hex_color = "#368ccf"
         self.metrics_struct = [
             metrics.ChartMetric(
@@ -39,17 +41,35 @@ class CPU_Monitor(monitor.MonitorBase):
                 metrics.KeyValueMetric(
                     identificator=Identificator("cpu", "base-freq"),
                     title="Base speed",
-                    getter=metrics.StaticValueGetter(cpu_info["hz_actual_friendly"])
+                    getter=metrics.StaticValueGetter(dmi_cpu_data["Current Speed"])
                 ),
                 metrics.KeyValueMetric(
                     identificator=Identificator("cpu", "logical-cores"),
                     title="Logical cores",
-                    getter=metrics.StaticValueGetter(psutil.cpu_count())
+                    getter=metrics.StaticValueGetter(dmi_cpu_data["Core Count"])
                 ),
                 metrics.KeyValueMetric(
                     identificator=Identificator("cpu", "physical-cores"),
                     title="Physical cores",
-                    getter=metrics.StaticValueGetter(psutil.cpu_count(logical=False))
+                    getter=metrics.StaticValueGetter(dmi_cpu_data["Thread Count"])
+                )
+            ),
+            
+            metrics.MetricsRow(
+                metrics.KeyValueMetric(
+                    identificator=Identificator("cpu", "l1-cache"),
+                    title="L1 cache",
+                    getter=metrics.StaticValueGetter(dmi_cache_data[0]["Installed Size"])
+                ),
+                metrics.KeyValueMetric(
+                    identificator=Identificator("cpu", "l3-cache"),
+                    title="L2 cache",
+                    getter=metrics.StaticValueGetter(dmi_cache_data[1]["Installed Size"])
+                ),
+                metrics.KeyValueMetric(
+                    identificator=Identificator("cpu", "l3-cache"),
+                    title="L3 cache",
+                    getter=metrics.StaticValueGetter(dmi_cache_data[2]["Installed Size"])
                 )
             ),
         ]

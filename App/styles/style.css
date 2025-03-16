@@ -141,6 +141,7 @@ body {
     border-radius: 8px 8px 0px 0px;
     padding-block: 8px;
     padding-inline: 12px;
+    box-sizing: var(--shine-border);
 }
 
 .panelHeader > h3 {

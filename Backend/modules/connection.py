@@ -105,8 +105,8 @@ async def handle_ws_message(msg: dict) -> None:
         logs.log("Connection", "info", f"Client requested all processes data.")
 
         processes_packet = {}
-        for pid, process_observer in processes.ProcessObserver.observers.items():
-            process_data = process_observer.fetch_process_data()
+        for pid, process_observer in processes.ProcessObserver.observers.copy().items():
+            process_data = process_observer.grab_processes_data()
             if process_data is not None:
                 processes_packet[pid] = asdict(process_data)
 
@@ -117,7 +117,6 @@ async def handle_ws_message(msg: dict) -> None:
         await ws_client.send_json(message)
 
     if event == EventType.KILL_PROC_REQUEST:
-
         observer = processes.ProcessObserver.observers.get(data)
         if observer is None:
             return logs.log("Connection", "error", f"Client requested process kill: {data} but no observer is observing this process.")
