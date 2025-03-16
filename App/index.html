@@ -26,12 +26,12 @@
 </head>
 <body>
     <div id="tabsContainer">
-        <div class="tab" active="1" onclick="switchTab(this, `tab-performance`)">
+        <div class="tab" active="1" id="perf-tab" onclick="switchTab(this, `tab-performance`)" tabColor="#368ccf">
             <i class="tabIcon fa-solid fa-chart-line"></i>
             <p class="tabTitle">Performance</p>
         </div>
         <div class="tabsSep"></div>
-        <div class="tab" onclick="switchTab(this, `tab-processes`)">
+        <div class="tab" onclick="switchTab(this, `tab-processes`)" tabColor="#69507c">
             <i class="tabIcon fa-solid fa-gear"></i>
             <p class="tabTitle">Processes</p>
         </div>

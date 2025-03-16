@@ -16,6 +16,8 @@ function switchTab(tabEl, tabId) {
         view.setAttribute("active", "0")
     })
     document.getElementById(tabId).setAttribute("active", "1");
+
+    document.documentElement.style.setProperty("--accent-color", tabEl.getAttribute("tabColor") ?? "#242334");
 }
 
 

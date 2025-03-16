@@ -13,7 +13,6 @@ function handlePerformanceUpdatePacket(packet) {
     );
 }
 
-
 function clearPerformancePage() {
     Object.keys(REGISTERED_CHARTS).forEach(chartKey => delete REGISTERED_CHARTS[chartKey])
 
@@ -94,6 +93,7 @@ function switchMonitor(monitorId) {
     
     const newColor = newMonitor.getAttribute("color");
     document.documentElement.style.setProperty("--accent-color", newColor);
+    document.getElementById("perf-tab").setAttribute("tabColor", newColor);
 }
 
 

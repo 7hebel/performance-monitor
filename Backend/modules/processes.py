@@ -7,7 +7,7 @@ import psutil
 import time
 
 
-CPUS_COUNT = psutil.cpu_count(logical=False)
+CPUS_COUNT = psutil.cpu_count(logical=True)
 
 
 @dataclass
@@ -55,8 +55,12 @@ class ProcessObserver:
             except (ProcessLookupError, psutil.Error):
                 lost_processes.append(process.pid)
                 
-            for lost_proc_pid in lost_processes:
-                self.processes.pop(lost_proc_pid, None)
+        for lost_proc_pid in lost_processes:
+            self.processes.pop(lost_proc_pid, None)
+            
+        if not self.processes:
+            state.processes_stats_updates_buffer.insert_update(self.name, {"status": False})
+            ProcessObserver.observers.pop(self.name)
                 
         proc_count = len(self.processes)
         
@@ -84,10 +88,10 @@ class ProcessObserver:
                 state.processes_stats_updates_buffer.insert_update(self.name, asdict(data))
             
             self.__prev_data = data
+            
         except (ProcessLookupError, psutil.Error):
             state.processes_stats_updates_buffer.insert_update(self.name, {"status": False})
             ProcessObserver.observers.pop(self.name)
-            
 
 
 SKIP_PROCESS_NAMES = ["svchost.exe", "System Idle Process", "System", ""]
@@ -112,8 +116,8 @@ def processes_checker() -> None:
             except psutil.NoSuchProcess:
                 continue
         
-        time.sleep(1)
+        time.sleep(2)
         
-        for observer in ProcessObserver.observers.values():
+        for observer in ProcessObserver.observers.copy().values():
             observer.report_updates()
             

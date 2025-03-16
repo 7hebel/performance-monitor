@@ -160,5 +160,5 @@ def start_server(port: int = 50506):
         server,
         host="localhost",
         port=port,
-        # log_level="critical",
+        log_level="critical",
     )
