@@ -4,12 +4,13 @@ from modules import monitor
 from modules import state
 from modules import logs
 
+from starlette.websockets import WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import fastapi
 from dataclasses import asdict
 from enum import StrEnum
 import threading
+import fastapi
 import asyncio
 import uvicorn
 import time
@@ -148,7 +149,7 @@ def updates_sender() -> None:
 
         try:
             asyncio.run(ws_client.send_json(message))
-        except RuntimeError:
+        except (RuntimeError, WebSocketDisconnect):
             logs.log("Connection", "warn", f"Disconnected from: {ws_client.client.host}:{ws_client.client.port} (write error)")
             ws_client = None
 

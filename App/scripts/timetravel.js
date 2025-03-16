@@ -163,24 +163,24 @@ function updateTimetravelMinute(m) {
 }
 
 function previousTimetravelMinute() {
-    if (travelModeMinute > 0) updateTimetravelMinute(--travelModeMinute)
+    if (travelModeMinute > 0) {
+        updateTimetravelMinute(--travelModeMinute);
+        updateTimetravelSecond(0);
+    }
 }
 
 function nextTimetravelMinute() {
-    if (travelModeMinute < 60) updateTimetravelMinute(++travelModeMinute)
+    if (travelModeMinute < 60) {
+        updateTimetravelMinute(++travelModeMinute);
+        updateTimetravelSecond(0);
+    } 
 }
 
 function timetravelTick() {
-    if (REALTIME_MODE) {
-        resetTicker();
-        return;
-    }
+    if (REALTIME_MODE) return resetTicker();
 
     if (travelModeSecond == 60) {
-        if (travelModeMinute == 59) {
-            resetTicker();
-            return;
-        }
+        if (travelModeMinute == 59) return resetTicker();
 
         updateTimetravelSecond(0);
         updateTimetravelMinute(travelModeMinute + 1);
@@ -207,7 +207,7 @@ function timetravelTick() {
     // Apply dump's value based on current second.
     Object.entries(currentDump).forEach(
         ([id, values]) => {
-            const approxValueIndex = Math.round((travelModeSecond / 60) * values.length);
+            const approxValueIndex = Math.min(Math.round((travelModeSecond / 60) * values.length), values.length - 1);
             const value = values[approxValueIndex];
 
             const element = document.getElementById(id);

@@ -143,12 +143,12 @@ function initializeCharts() {
 
 function updateChart(identificator, value) {
     const charts = REGISTERED_CHARTS[identificator];
-    if (!charts) return;
+    if (!charts || value == undefined) return;
 
     try {
         charts.dataset.shift();
         charts.dataset.push(value);
-    
+        
         charts.metricChart.updateSeries([{data: charts.dataset}]);
         charts.previewChart.updateSeries([{data: charts.dataset}]);
     } catch {
