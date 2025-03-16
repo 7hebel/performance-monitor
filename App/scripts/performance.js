@@ -13,7 +13,7 @@ function handlePerformanceUpdatePacket(packet) {
     );
 }
 
-function clearPerformancePage() {
+function clearPerformancePage(noLoader=false) {
     Object.keys(REGISTERED_CHARTS).forEach(chartKey => delete REGISTERED_CHARTS[chartKey])
 
     Array.from(MONITORS_LIST.children).forEach(monitor => {
@@ -22,6 +22,16 @@ function clearPerformancePage() {
     Array.from(MONITORS_CONTENTS.children).forEach(monitorContent => {
         monitorContent.remove();
     })
+
+    if (!noLoader) {
+        MONITORS_CONTENTS.innerHTML = `
+            <div class="loaderContainer">
+                <div class="code-loader">
+                    <span>{</span><span>}</span>
+                </div>
+            </div>
+        `;
+    }
 }
 
 function addMonitorHeader(monitorId, targetTitle) {

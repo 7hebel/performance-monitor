@@ -10,6 +10,15 @@ let processesTable = new DataTable("#processesTable", {
         topStart: null,
         topEnd: null
     },
+    language: {
+        emptyTable: `
+            <div class="loaderContainer">
+                <div class="code-loader">
+                    <span>{</span><span>}</span>
+                </div>
+            </div>
+        `
+    },
     rowId: row => `proc-row-${row.name}`,
     columns: [
         { 

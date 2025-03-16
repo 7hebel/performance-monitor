@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="styles/metrics.css">
     <link rel="stylesheet" href="styles/monitors.css">
     <link rel="stylesheet" href="styles/processes.css">
+    <link rel="stylesheet" href="styles/loader.css">
     
     <script src="scripts/charts.js"></script>
     <script defer src="scripts/tabs.js"></script>
@@ -26,7 +27,7 @@
 </head>
 <body>
     <div id="tabsContainer">
-        <div class="tab" active="1" id="perf-tab" onclick="switchTab(this, `tab-performance`)" tabColor="#368ccf">
+        <div class="tab" active="1" id="perf-tab" onclick="switchTab(this, `tab-performance`)" tabColor="#242424">
             <i class="tabIcon fa-solid fa-chart-line"></i>
             <p class="tabTitle">Performance</p>
         </div>
@@ -66,7 +67,15 @@
                     <i id="performanceHistoryBtn" class="fa-solid fa-clock-rotate-left" onclick="switchTimeTravelMode()"></i>
                 </div>
             </div>
-            <div id="monitorContents" class="panel shine"></div>
+            <div id="monitorContents" class="panel shine">
+                
+                <div class="loaderContainer">
+                    <div class="code-loader">
+                        <span>{</span><span>}</span>
+                    </div>
+                </div>
+
+            </div>
         </div>
 
         <div class="tabView" id="tab-processes" active="0">

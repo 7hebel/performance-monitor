@@ -126,7 +126,7 @@ function queryTravelData() {
     fetch(HTTP_PROTO + "://" + API_ADDRESS + "/perf-history/query-cluster/" + cluster, options)
         .then(response => response.json())
         .then(clusterData => {
-            clearPerformancePage();
+            clearPerformancePage(true);
             clusterData.composition.forEach(data => {
                 addMonitorHeader(data.categoryId, data.targetTitle);
                 buildDataPage(data.categoryId, data.targetTitle, data.productInfo, data.color, data.metrics);

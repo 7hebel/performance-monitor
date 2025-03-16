@@ -75,6 +75,8 @@ async function handleMessage(evtype, data) {
         if (gotPerfComposition) return;
         gotPerfComposition = true;
         
+        clearPerformancePage(true);
+
         for (monitor of data) {
             addMonitorHeader(monitor.categoryId, monitor.targetTitle);
             buildDataPage(monitor.categoryId, monitor.targetTitle, monitor.productInfo, monitor.color, monitor.metrics);
