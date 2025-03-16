@@ -1,0 +1,65 @@
+.processesPanel {
+    position: relative;
+    width: 100%;
+    height: calc(100% - 24px);
+    padding: 12px;
+    padding-top: 4px;
+}
+
+#processesTable {
+    color: var(--text-color);
+    font-size: 14px;
+}
+
+.processesPanel thead, .dt-scroll-headInner {
+    color: white;
+    background-color: #ffffff0f;
+    font-weight: 500 !important;
+}
+
+.processesPanel td {
+    font-family: 'Ubuntu Sans Mono';
+}
+
+td.dt-td-less-important {
+    color: #7a7a7a;
+}
+
+td.dt-td-name {
+    font-weight: 500;
+}
+
+.dt-scroll-head {
+    border-radius: 8px 8px 0px 0px !important;
+    box-shadow: var(--shine-border);
+}
+
+th {
+    transition: background-color .4s;
+}
+
+th:hover {
+    background-color: rgba(255, 255, 255, 0.068);
+}
+
+.dt-scroll-body {
+    border-radius: 0px 0px 8px 8px;
+    background-color: #ffffff05;
+}
+
+.processKillBtn {
+    all: unset;
+    border: 1px solid #b3656538;
+    background-color: #a6969629;
+    color: #dbc8c8;
+    border-radius: 4px;
+    padding-inline: 4px;
+    padding-block: 2px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color .4s;
+}
+
+.processKillBtn:hover {
+    background-color: #b127272b;
+}

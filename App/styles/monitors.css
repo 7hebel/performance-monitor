@@ -1,12 +1,9 @@
 #monitorsList {
     position: relative;
-    max-width: 300px;
+    max-width: 400px;
     min-width: 200px;
-    width: 25%;
+    width: 28%;
     height: 100%;
-    background-color: #222222cf;
-    border: 1px solid #ffffff0a;
-    border-radius: 8px;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -44,9 +41,6 @@
 #monitorContents {
     width: 100%;
     height: 100%;
-    background-color: #222222cf;
-    border: 1px solid #ffffff0a;
-    border-radius: 8px;
 }
 
 .monitorView[active="0"] {

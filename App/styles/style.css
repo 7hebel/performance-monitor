@@ -31,6 +31,12 @@ body {
     box-shadow: var(--shine-border);
 }
 
+.panel {
+    background-color: #222222cf;
+    border: 1px solid #ffffff0a;
+    border-radius: 8px;
+}
+
 #tabsContainer {
     position: relative;
     width: 100%;
@@ -141,4 +147,26 @@ body {
     margin: 0;
     font-size: 16px;
     font-weight: 700;
+}
+
+::-webkit-scrollbar {
+    width: 4px;
+    height: 6px;
+    border-radius: 100px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ffffff42;
+    border-radius: 0px;
+    border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ffffff57;
+    cursor: pointer;
+    border-radius: 100px;
 }

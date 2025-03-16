@@ -1,3 +1,4 @@
+from modules import processes
 from modules import history
 from modules import monitor
 from modules import state
@@ -6,6 +7,7 @@ from modules import logs
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import fastapi
+from dataclasses import asdict
 from enum import StrEnum
 import threading
 import asyncio
@@ -31,11 +33,14 @@ class EventType(StrEnum):
     PERF_ADD_MONITOR = "perf-add-monitor"
     PERF_REMOVE_MONITOR = "perf-remove-monitor"
     PERF_METRICS_UPDATE = "perf-metrics-update"
+    PROC_LIST_PACKET = "proc-list-packet"
     UPDATE_PACKET = "update-packet"
     RAISE_ALERT = "raise-alert"
 
     # Receive:
     PERF_COMPOSITION_REQUEST = "perf-composition-request"
+    ALL_PROCESSES_REQUEST = "all-processes-request"
+    KILL_PROC_REQUEST = "proc-kill-request"
 
 
 @server.get("/perf-history/points")
@@ -95,6 +100,30 @@ async def handle_ws_message(msg: dict) -> None:
             "data": monitor.prepare_composition_data()
         }
         await ws_client.send_json(message)
+
+    if event == EventType.ALL_PROCESSES_REQUEST:
+        logs.log("Connection", "info", f"Client requested all processes data.")
+
+        processes_packet = {}
+        for pid, process_observer in processes.ProcessObserver.observers.items():
+            process_data = process_observer.fetch_process_data()
+            if process_data is not None:
+                processes_packet[pid] = asdict(process_data)
+
+        message = {
+            "event": EventType.PROC_LIST_PACKET,
+            "data": processes_packet
+        }
+        await ws_client.send_json(message)
+
+    if event == EventType.KILL_PROC_REQUEST:
+
+        observer = processes.ProcessObserver.observers.get(data)
+        if observer is None:
+            return logs.log("Connection", "error", f"Client requested process kill: {data} but no observer is observing this process.")
+
+        logs.log("Connection", "info", f"Client requested process kill: {data}")
+        observer.try_kill()
 
 
 def updates_sender() -> None:

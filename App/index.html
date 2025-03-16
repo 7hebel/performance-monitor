@@ -3,15 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="src/style.css">
-    <link rel="stylesheet" href="src/metrics.css">
-    <link rel="stylesheet" href="src/monitors.css">
+
+    <link rel="stylesheet" href="styles/style.css">
+    <link rel="stylesheet" href="styles/metrics.css">
+    <link rel="stylesheet" href="styles/monitors.css">
+    <link rel="stylesheet" href="styles/processes.css">
+    
+    <script src="scripts/charts.js"></script>
+    <script defer src="scripts/tabs.js"></script>
+    <script defer src="scripts/performance.js"></script>
+    <script defer src="scripts/connection.js"></script>
+    <script defer src="scripts/timetravel.js"></script>
+    <script defer src="scripts/processes.js"></script>
+    
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/2.2.2/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/plug-ins/2.2.2/features/scrollResize/dataTables.scrollResize.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script src="src/charts.js"></script>
-    <script defer src="src/tabs.js"></script>
-    <script defer src="src/performance.js"></script>
-    <script defer src="src/connection.js"></script>
-    <script defer src="src/timetravel.js"></script>
     <script src="https://kit.fontawesome.com/e526ea242b.js" crossorigin="anonymous"></script>
     <title>Performance Monitor</title>
 </head>
@@ -22,7 +31,7 @@
             <p class="tabTitle">Performance</p>
         </div>
         <div class="tabsSep"></div>
-        <div class="tab">
+        <div class="tab" onclick="switchTab(this, `tab-processes`)">
             <i class="tabIcon fa-solid fa-gear"></i>
             <p class="tabTitle">Processes</p>
         </div>
@@ -50,14 +59,32 @@
     <div id="tabsViews">
 
         <div class="tabView" id="tab-performance" active="1">
-            <div id="monitorsList" class="shine">
+            <div id="monitorsList" class="panel shine">
                 <div id="performanceTimingInfo">
                     <div class="dot"></div>
                     <span id="performanceTimingName">Realtime</span>
                     <i id="performanceHistoryBtn" class="fa-solid fa-clock-rotate-left" onclick="switchTimeTravelMode()"></i>
                 </div>
             </div>
-            <div id="monitorContents" class="shine"></div>
+            <div id="monitorContents" class="panel shine"></div>
+        </div>
+
+        <div class="tabView" id="tab-processes" active="0">
+            <div class="processesPanel panel shine">
+                <table id="processesTable" class="display">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>PID</th>
+                            <th>CPU usage</th>
+                            <th>RAM usage</th>
+                            <th>Threads</th>
+                            <th>Started</th>
+                            <th>Kill</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
         </div>
 
     </div>

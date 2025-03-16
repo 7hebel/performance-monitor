@@ -17,8 +17,8 @@ class UpdatesBuffer[KeyT, ValT]:
         self._flush_pipe_fn: Callable | None = None
         BUFFERS.append(self)
 
-    def insert_update(self, metric_id: KeyT, value: ValT) -> None:
-        self.updates[str(metric_id)] = value
+    def insert_update(self, identifier: KeyT, value: ValT) -> None:
+        self.updates[str(identifier)] = value
 
     def attach_flush_listener(self, listener_fn: Callable[[dict[KeyT, ValT]], None]) -> None:
         self._flush_pipe_fn = listener_fn

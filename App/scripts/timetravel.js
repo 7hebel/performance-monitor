@@ -7,6 +7,8 @@ let travelModeTicker = null;
 
 
 function switchTimeTravelMode() {
+    if (!gotPerfComposition) return;
+    
     REALTIME_MODE = !REALTIME_MODE;
     if (REALTIME_MODE) {
         document.getElementById("performanceTimingName").textContent = "Realtime";

@@ -11,7 +11,10 @@ const EV_PERF_ADD_MONITOR = "perf-add-monitor";
 const EV_PERF_REMOVE_MONITOR = "perf-remove-monitor";
 const EV_RAISE_ALERT = "raise-alert";
 const EV_MONITOR_CHANGE = "monitor-change";
+const EV_PROCESSES_LIST = "proc-list-packet";
 const EV_REQUEST_COMPOSITION = "perf-composition-request";
+const EV_REQUEST_PROC_KILL = "proc-kill-request";
+const EV_REQUEST_ALL_PROCESSES = "all-processes-request";
 
 const PACKET_PERFORMANCE = "perf-metrics";
 const PACKET_PROCESSES = "proc-stats";
@@ -39,6 +42,7 @@ function setupSocket() {
     socket.addEventListener('open', (event) => {
         console.log("Connection opened");
         _sendMessageToServer(EV_REQUEST_COMPOSITION);
+        _sendMessageToServer(EV_REQUEST_ALL_PROCESSES);
     });
     
     socket.addEventListener('message', (event) => {
@@ -85,7 +89,7 @@ async function handleMessage(evtype, data) {
         Object.entries(data).forEach(
             ([packetId, updates]) => {
                 if (packetId == PACKET_PERFORMANCE) handlePerformanceUpdatePacket(updates);
-                if (packetId == PACKET_PROCESSES) console.warn("Handling PACKET_PROCESSES not implemented yet.")
+                if (packetId == PACKET_PROCESSES) handleProcessesUpdatePacket(updates);
             }
         )
     }
@@ -101,5 +105,10 @@ async function handleMessage(evtype, data) {
         document.getElementById("view-" + data).remove();
         console.log(`Dynamically removed performance monitor: ${data}`);
     }
+
+    if (evtype == EV_PROCESSES_LIST) {
+        handleProcessesUpdatePacket(data);
+    }
+    
 }
 
