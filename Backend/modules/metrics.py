@@ -107,8 +107,9 @@ class KeyValueMetric:
     important_item: bool = False  # Changes style on frontend.
     suppress_errors: bool = False
     trackable: bool = False
-    trackable_getter: Callable[[], int | float] | None = None
-
+    trackable_formatter: Callable[[MetricValueT], int | float] | None = None  
+    # ^ Formats .getter()'s readable output to numeric value.
+    
     def __post_init__(self) -> None:
         if not isinstance(self.getter, StaticValueGetter):
             AsyncReportingValueGetter(self)

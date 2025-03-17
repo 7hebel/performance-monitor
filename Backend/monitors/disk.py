@@ -12,20 +12,20 @@ import time
 
 class DISK_Monitor(monitor.MonitorBase):
     def __init__(self, mountpoint: str, fstype: str) -> None:
-        self.mountpoint = mountpoint
-        self.target_title = f"Disk {mountpoint}"
+        self.mountpoint = mountpoint.removesuffix("\\")
+        self.target_title = f"Disk {self.mountpoint}"
         self.product_info = self.format_size(self.get_usage().total)
         self.hex_color = "#70db77"
         self.metrics_struct = [
             metrics.ChartMetric(
-                identificator=Identificator(f"disk-{mountpoint}", "space-chart"),
+                identificator=Identificator(f"disk-{self.mountpoint}", "space-chart"),
                 title="Used space (%)",
                 getter=lambda: self.get_usage().percent,
                 suppress_errors=True
             ),
             
             metrics.KeyValueMetric(
-                identificator=Identificator(f"disk-{mountpoint}", "usage-percent"),
+                identificator=Identificator(f"disk-{self.mountpoint}", "usage-percent"),
                 title="Usage",
                 getter=lambda: f"{self.get_usage().percent}%",
                 important_item=True,
@@ -34,34 +34,34 @@ class DISK_Monitor(monitor.MonitorBase):
             
             metrics.MetricsRow(
                 metrics.KeyValueMetric(
-                    identificator=Identificator(f"disk-{mountpoint}", "total-size"),
+                    identificator=Identificator(f"disk-{self.mountpoint}", "total-size"),
                     title="Capacity",
                     getter=metrics.StaticValueGetter(self.format_size(self.get_usage().total)),
                     important_item=False,
                     suppress_errors=True
                 ),
                 metrics.KeyValueMetric(
-                    identificator=Identificator(f"disk-{mountpoint}", "used-size"),
+                    identificator=Identificator(f"disk-{self.mountpoint}", "used-size"),
                     title="Used",
                     getter=lambda: self.format_size(self.get_usage().used),
                     important_item=False,
                     suppress_errors=True,
                     trackable=True,
-                    trackable_getter=lambda: self.get_usage().used
+                    trackable_formatter=lambda _: self.get_usage().used
                 ),
                 metrics.KeyValueMetric(
-                    identificator=Identificator(f"disk-{mountpoint}", "free-size"),
+                    identificator=Identificator(f"disk-{self.mountpoint}", "free-size"),
                     title="Free",
                     getter=lambda: self.format_size(self.get_usage().free),
                     important_item=False,
                     suppress_errors=True,
                     trackable=True,
-                    trackable_getter=lambda: self.get_usage().free
+                    trackable_formatter=lambda _: self.get_usage().free
                 )
             ),
             
             metrics.KeyValueMetric(
-                identificator=Identificator(f"disk-{mountpoint}", "fs-type"),
+                identificator=Identificator(f"disk-{self.mountpoint}", "fs-type"),
                 title="Filesystem type",
                 getter=metrics.StaticValueGetter(fstype),
                 important_item=False,

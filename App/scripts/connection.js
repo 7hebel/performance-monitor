@@ -19,6 +19,7 @@ const EV_REMOVE_TRACKER = "remove-tracker";
 
 const PACKET_PERFORMANCE = "perf-metrics";
 const PACKET_PROCESSES = "proc-stats";
+const PACKET_TRACKERS = "trackers-approx-data";
 
 
 function setConnectionStatus(status) {
@@ -44,6 +45,8 @@ function setupSocket() {
         console.log("Connection opened");
         _sendMessageToServer(EV_REQUEST_COMPOSITION);
         _sendMessageToServer(EV_REQUEST_ALL_PROCESSES);
+        fetchTrackableMetrics();
+        fetchActiveTrackers();
     });
     
     socket.addEventListener('message', (event) => {
@@ -93,6 +96,7 @@ async function handleMessage(evtype, data) {
             ([packetId, updates]) => {
                 if (packetId == PACKET_PERFORMANCE) handlePerformanceUpdatePacket(updates);
                 if (packetId == PACKET_PROCESSES) handleProcessesUpdatePacket(updates);
+                if (packetId == PACKET_TRACKERS) handleTrackersUpdatePacket(updates);
             }
         )
     }
@@ -111,6 +115,11 @@ async function handleMessage(evtype, data) {
 
     if (evtype == EV_PROCESSES_LIST) {
         handleProcessesUpdatePacket(data);
+    }
+
+    if (evtype == EV_RAISE_ALERT) {
+        const {title, body} = data;
+        sendNotification(title, body);
     }
     
 }

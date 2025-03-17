@@ -91,16 +91,17 @@
                 <div id="noNotificationsAlert">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <span>Turn on notifications to receive alerts.</span>
-                    <button onclick="askNotificationPermission()"><i class="fa-solid fa-toggle-on"></i></button>
+                    <button onclick="askNotificationPermission()"><i class="fa-solid fa-toggle-off"></i></button>
                 </div>
 
                 <div class="alertCreationPanel">
                     <i class="backgroundIcon fa-solid fa-eye"></i>
 
                     <div class="alertStatementBlock">
-                        <span>If average value of</span>
+                        <span class="statementStart">Notify me</span>
+                        <span>when the average value of</span>
                         <select id="alertStatementMetric">
-                            <option value="0">( metric )</option>    
+                            <option value="0">metric</option>    
                         </select>
                         <span>is</span>
                         <div class="radio-input-group">
@@ -120,49 +121,30 @@
                             </div>
                         </div>
                         <span>than</span>
-                        <input type="text" maxlength="7" id="alertStatementValue">
-                        <span>for a</span>
-                        <div class="radio-input-group">
-                            <div class="radio-inputs">
-                                <label class="radio">
-                                    <input type="radio" checked name="radioStmtPeriod" id="alertCreationPeriodMin">
-                                    <span class="name">
-                                        minute
-                                    </span>
-                                </label>
-                                <label class="radio">
-                                    <input type="radio" name="radioStmtPeriod">
-                                    <span class="name">
-                                        hour
-                                    </span>
-                                </label>
-                            </div>
-                        </div>
+                        <input type="text" maxlength="7" placeholder="value" id="alertStatementValue">
+                        <span>for a minute.</span>
+
+                        <button class="createAlertButton" onclick="createNewTracker()">
+                            <i class="fa-solid fa-bell"></i>
+                            Notify
+                        </button>
                     </div>
-
-                    <button class="createAlertButton" onclick="createNewTracker()">
-                        <i class="fa-solid fa-bell"></i>
-                        Create alert
-                    </button>
-
                     <span id="alertCreationError"></span>
                 </div>
                 
-                <h1 class="alertsHeader">Tracking <span id="alertsCount">0</span> metrics:</h1>
+                <h1 class="alertsHeader">
+                    <i class="fa-solid fa-magnifying-glass-chart"></i>
+                    Tracking
+                    <span id="alertsCount">0</span>
+                    metrics
+                </h1>
 
                 <div id="alertsContainer">
-
-                    <!-- TODO: currentValue color based on how near limit value? -->
-                    <!-- <div class="trackedMetric">
-                        <div class="trackedMetricHeader">
-                            <span class="trackedMetricCategory">CPU</span>
-                            <span class="trackedMetricTitle">Processes</span>
-                            <span class="trackedMetricCurrentValue">267</span>
-                        </div>
-                        <span class="trackedMetricTrigger">&gt; 312 for a minute</span>
-                        <i class="trackedMetricRemove fa-solid fa-minus"></i>
-                    </div> -->
-
+                    <div class="trackersInfo">
+                        <span>Category & metric</span>
+                        <span>Approximate value</span>
+                        <span>Alert condition</span>
+                    </div>
                 </div>
             </div>
         </div>

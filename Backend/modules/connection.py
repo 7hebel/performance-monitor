@@ -83,34 +83,24 @@ async def get_active_trackers(request: fastapi.Request) -> JSONResponse:
 class CreateTrackerRequestModel(BaseModel):
     trackedId: str
     stmtOp: str
-    avgPeriod: str
     limitValue: int | float
     
 
 @server.post("/trackers/create")
 async def create_tracker(tracker: CreateTrackerRequestModel, request: fastapi.Request) -> JSONResponse:
     """ Create new tracker using sent data. Returns {'status': True/False, 'err_msg': '...'} based on validation status. """
-    metric = None
-    for trackable_metric in tracking.TRACKABLE_METRICS:
-        if trackable_metric.identificator.full() == tracker.trackedId:
-            metric = trackable_metric
-            break
-    else:
+    metric = tracking.TRACKABLE_METRICS.get(tracker.trackedId)
+    if metric is None:
         logs.log("Tracking", "error", f"{request.client.host}:{request.client.port} attempted to create alert on: `{tracker.trackedId}` which is not registered as trackable.")
         return JSONResponse({"status": False, "err_msg": "Invalid metric. (May not exist anymore)"})
     
-    for tracked_metric in tracking.TRACKERS:
-        if tracked_metric.tracked_id == tracker.trackedId:
-            logs.log("Tracking", "error", f"{request.client.host}:{request.client.port} attempted to create alert on: `{tracker.trackedId}` which is already tracked by another tracker.")
-            return JSONResponse({"status": False, "err_msg": "This metric is already tracked."})
+    if tracker.trackedId in tracking.TRACKERS:
+        logs.log("Tracking", "error", f"{request.client.host}:{request.client.port} attempted to create alert on: `{tracker.trackedId}` which is already tracked by another tracker.")
+        return JSONResponse({"status": False, "err_msg": "This metric is already tracked."})
     
     if tracker.stmtOp not in "<>":
         logs.log("Tracking", "error", f"{request.client.host}:{request.client.port} attempted to create alert on: `{tracker.trackedId}` but provided invalid statement op: `{tracker.stmtOp}`.")
         return JSONResponse({"status": False, "err_msg": "Invalid statement operator (</>)."})
-    
-    if tracker.avgPeriod not in ("minute", "hour"):
-        logs.log("Tracking", "error", f"{request.client.host}:{request.client.port} attempted to create alert on: `{tracker.trackedId}` but provided invalid avg period: `{tracker.avgPeriod}`.")
-        return JSONResponse({"status": False, "err_msg": "Invalid average period (minute/hour)."})
     
     tracker_meta = tracking.TrackerMeta(
         tracked_id=metric.identificator.full(),
@@ -118,7 +108,6 @@ async def create_tracker(tracker: CreateTrackerRequestModel, request: fastapi.Re
         target_category=metric.identificator.category,
         stmt_op=tracker.stmtOp,
         stmt_value=tracker.limitValue,
-        avg_period=tracker.avgPeriod
     )
     tracking.add_tracker(tracker_meta)
     
@@ -226,5 +215,5 @@ def start_server(port: int = 50506):
         server,
         host="localhost",
         port=port,
-        log_level="critical",
+        # log_level="critical",
     )

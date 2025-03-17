@@ -29,7 +29,7 @@ class CPU_Monitor(monitor.MonitorBase):
                     getter=self.get_cpu_usage,
                     important_item=True,
                     trackable=True,
-                    trackable_getter=lambda: psutil.cpu_percent(interval=1)
+                    trackable_formatter=lambda usage: float(usage[:-1])
                 ),
                 metrics.KeyValueMetric(
                     identificator=Identificator("cpu", "processes"),

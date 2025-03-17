@@ -18,8 +18,6 @@ function checkNotificationsPerms() {
     }
 }
 
-checkNotificationsPerms();
-
 function sendNotification(title, text) {
     new Notification(title, { body: text });
 }
@@ -60,15 +58,12 @@ function fetchTrackableMetrics() {
         });
 }
 
-fetchTrackableMetrics();
 
 function createNewTracker() {
     const errorLabel = document.getElementById("alertCreationError");
     const metricSelect = document.getElementById("alertStatementMetric");
     const metricValue = parseFloat(document.getElementById("alertStatementValue").value);
     const statementOp = (document.getElementById("alertCreationOpLt").checked) ? "<" : ">";
-    const avgPeriod = (document.getElementById("alertCreationPeriodMin").checked) ? "minute" : "hour";
-
     
     if (metricSelect.value == "0") {
         errorLabel.textContent = "Select a metric to track.";
@@ -91,7 +86,6 @@ function createNewTracker() {
         body: JSON.stringify({
             trackedId: id,
             stmtOp: statementOp,
-            avgPeriod: avgPeriod,
             limitValue: metricValue
         })
     };
@@ -103,7 +97,7 @@ function createNewTracker() {
                 errorLabel.textContent = result.err_msg;
             } else {
                 errorLabel.textContent = "";
-                const triggerStmt = `${statementOp} ${metricValue} for a ${avgPeriod}`;
+                const triggerStmt = `${statementOp} ${metricValue} for a minute`;
                 buildMetricTrackerEntry(id, category, name, triggerStmt);
                 document.getElementById("alertStatementMetric").value = "0";
                 document.getElementById("alertStatementValue").value = "";
@@ -122,7 +116,8 @@ function sendRemoveTracker(trackedId) {
 
 function buildMetricTrackerEntry(trackedId, category, name, triggerStmt) {
     category = category.toUpperCase();
-    
+   
+    // If performance-copmosition has been received and initialized, categoryColors contain correct color.
     const initColor = (category in categoryColors) ? categoryColors[category] : "orange";
     const style = `--category-color: ${initColor}`;
 
@@ -135,10 +130,10 @@ function buildMetricTrackerEntry(trackedId, category, name, triggerStmt) {
             <div class="trackedMetricHeader">
                 <span class="trackedMetricCategory">${category}</span>
                 <span class="trackedMetricTitle">${name}</span>
-                <span class="trackedMetricCurrentValue" id="tracker-${trackedId}">${initValue}</span>
+                <i class="trackedMetricRemove fa-solid fa-eye-slash" onclick="sendRemoveTracker('${trackedId}')"></i>
             </div>
+            <span class="trackedMetricCurrentValue" id="tracker-${trackedId}">${initValue}</span>
             <span class="trackedMetricTrigger">${triggerStmt}</span>
-            <i class="trackedMetricRemove fa-solid fa-xmark" onclick="sendRemoveTracker('${trackedId}')"></i>
         </div>
     `;
 
@@ -168,5 +163,34 @@ function fetchActiveTrackers() {
         });
 }
 
-fetchActiveTrackers();
+function trackerColor(ratio) {
+    const color1 = [240, 144, 144];
+    const color2 = [192, 237, 183];
+    var w1 = ratio;
+    var w2 = 1 - w1;
+    const r = Math.round(color1[0] * w1 + color2[0] * w2);
+    const g = Math.round(color1[1] * w1 + color2[1] * w2);
+    const b = Math.round(color1[2] * w1 + color2[2] * w2);
+    return `rgb(${r},${g},${b})`;
+}
 
+function handleTrackersUpdatePacket(updates) {
+    Object.entries(updates).forEach(
+        ([trackerId, approxData]) => {
+            let {value, ratio} = approxData;
+
+            let color = "red";
+            if (ratio < 1) color = trackerColor(ratio) ;
+            
+            
+            const trackerEl = document.getElementById(`tracker-${trackerId}`);
+            if (trackerEl) {
+                trackerEl.textContent = value;
+                trackerEl.style = `color: ${color}`;
+
+            }
+        }
+    )
+}
+
+checkNotificationsPerms();

@@ -10,9 +10,6 @@ function handlePerformanceUpdatePacket(packet) {
             const element = document.getElementById(id);
             if (element === null) updateChart(id, value);
             else document.getElementById(id).textContent = value;
-
-            const trackerElement = document.getElementById(`tracker-${id}`);
-            if (trackerElement !== null) trackerElement.textContent = value;
         }
     );
 }
