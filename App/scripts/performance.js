@@ -1,6 +1,7 @@
 const MONITORS_LIST = document.getElementById("monitorsList");
 const MONITORS_CONTENTS = document.getElementById("monitorContents");
 const defined_page_containers = [];
+const categoryColors = {};
 
 
 function handlePerformanceUpdatePacket(packet) {
@@ -9,6 +10,9 @@ function handlePerformanceUpdatePacket(packet) {
             const element = document.getElementById(id);
             if (element === null) updateChart(id, value);
             else document.getElementById(id).textContent = value;
+
+            const trackerElement = document.getElementById(`tracker-${id}`);
+            if (trackerElement !== null) trackerElement.textContent = value;
         }
     );
 }
@@ -91,6 +95,12 @@ function buildDataPage(monitorId, targetTitle, productInfo, color, metrics) {
     MONITORS_CONTENTS.appendChild(monitorView);
     defined_page_containers.push(monitorView);
 
+    const category = metrics[0].identificator.split(".", 1)[0].toUpperCase();
+    categoryColors[category] = color;
+    if (category in trackersPerCategory) {
+        trackersPerCategory[category].forEach(elId => document.getElementById(elId).style = `--category-color: ${color}`)
+    }
+
     initializeCharts();
 }
 
@@ -129,6 +139,9 @@ function buildMetric(type, identificator, title, details, color, container) {
         `;
         
         container.appendChild(kvMetric);
+
+        const trackedEl = document.getElementById(`tracker-${identificator}`);
+        if (trackedEl) trackedEl.textContent = value;
     }
 }
 

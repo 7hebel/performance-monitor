@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="styles/monitors.css">
     <link rel="stylesheet" href="styles/processes.css">
     <link rel="stylesheet" href="styles/loader.css">
+    <link rel="stylesheet" href="styles/alerts.css">
     
     <script src="scripts/charts.js"></script>
     <script defer src="scripts/tabs.js"></script>
@@ -16,6 +17,7 @@
     <script defer src="scripts/connection.js"></script>
     <script defer src="scripts/timetravel.js"></script>
     <script defer src="scripts/processes.js"></script>
+    <script defer src="scripts/alerts.js"></script>
     
     <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css" />
     <script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" crossorigin="anonymous"></script>
@@ -37,7 +39,7 @@
             <p class="tabTitle">Processes</p>
         </div>
         <div class="tabsSep"></div>
-        <div class="tab">
+        <div class="tab" onclick="switchTab(this, `tab-alerts`); fetchTrackableMetrics();" tabColor="#3960b9">
             <i class="tabIcon fa-solid fa-bell"></i>
             <p class="tabTitle">Alerts</p>
         </div>
@@ -50,7 +52,7 @@
 
     <div id="tabsViews">
 
-        <div class="tabView" id="tab-performance" active="1">
+        <div class="tabView" id="tab-performance" active="0">
             <div id="monitorsList" class="panel shine">
                 <div id="performanceTimingInfo">
                     <div class="dot"></div>
@@ -59,13 +61,11 @@
                 </div>
             </div>
             <div id="monitorContents" class="panel shine">
-
                 <div class="loaderContainer">
                     <div class="code-loader">
                         <span>{</span><span>}</span>
                     </div>
                 </div>
-
             </div>
         </div>
 
@@ -83,6 +83,87 @@
                         </tr>
                     </thead>
                 </table>
+            </div>
+        </div>
+
+        <div class="tabView" id="tab-alerts" active="1">
+            <div class="alertsPanel panel shine">
+                <div id="noNotificationsAlert">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Turn on notifications to receive alerts.</span>
+                    <button onclick="askNotificationPermission()"><i class="fa-solid fa-toggle-on"></i></button>
+                </div>
+
+                <div class="alertCreationPanel">
+                    <i class="backgroundIcon fa-solid fa-eye"></i>
+
+                    <div class="alertStatementBlock">
+                        <span>If average value of</span>
+                        <select id="alertStatementMetric">
+                            <option value="0">( metric )</option>    
+                        </select>
+                        <span>is</span>
+                        <div class="radio-input-group">
+                            <div class="radio-inputs">
+                                <label class="radio">
+                                    <input type="radio" checked name="radioStmtType" id="alertCreationOpLt">
+                                    <span class="name">
+                                        &lt;
+                                    </span>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio" name="radioStmtType">
+                                    <span class="name">
+                                        &gt;
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <span>than</span>
+                        <input type="text" maxlength="7" id="alertStatementValue">
+                        <span>for a</span>
+                        <div class="radio-input-group">
+                            <div class="radio-inputs">
+                                <label class="radio">
+                                    <input type="radio" checked name="radioStmtPeriod" id="alertCreationPeriodMin">
+                                    <span class="name">
+                                        minute
+                                    </span>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio" name="radioStmtPeriod">
+                                    <span class="name">
+                                        hour
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="createAlertButton" onclick="createNewTracker()">
+                        <i class="fa-solid fa-bell"></i>
+                        Create alert
+                    </button>
+
+                    <span id="alertCreationError"></span>
+                </div>
+                
+                <h1 class="alertsHeader">Tracking <span id="alertsCount">0</span> metrics:</h1>
+
+                <div id="alertsContainer">
+
+                    <!-- TODO: currentValue color based on how near limit value? -->
+                    <!-- <div class="trackedMetric">
+                        <div class="trackedMetricHeader">
+                            <span class="trackedMetricCategory">CPU</span>
+                            <span class="trackedMetricTitle">Processes</span>
+                            <span class="trackedMetricCurrentValue">267</span>
+                        </div>
+                        <span class="trackedMetricTrigger">&gt; 312 for a minute</span>
+                        <i class="trackedMetricRemove fa-solid fa-minus"></i>
+                    </div> -->
+
+                </div>
             </div>
         </div>
 

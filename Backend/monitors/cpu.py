@@ -27,13 +27,16 @@ class CPU_Monitor(monitor.MonitorBase):
                     identificator=Identificator("cpu", "usage-value"),
                     title="Usage",
                     getter=self.get_cpu_usage,
-                    important_item=True
+                    important_item=True,
+                    trackable=True,
+                    trackable_getter=lambda: psutil.cpu_percent(interval=1)
                 ),
                 metrics.KeyValueMetric(
                     identificator=Identificator("cpu", "processes"),
                     title="Processes",
                     getter=self.get_processes_count,
-                    important_item=True
+                    important_item=True,
+                    trackable=True
                 )
             ),
             

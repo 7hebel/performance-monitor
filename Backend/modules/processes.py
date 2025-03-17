@@ -2,12 +2,11 @@ from modules import state
 from modules import logs
 
 from dataclasses import dataclass, asdict
-import threading
 import psutil
 import time
 
 
-CPUS_COUNT = psutil.cpu_count(logical=True)
+CPUS_COUNT = psutil.cpu_count(logical=False)
 
 
 @dataclass

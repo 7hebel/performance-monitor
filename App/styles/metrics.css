@@ -86,6 +86,7 @@
     background: linear-gradient(160deg, #303030 0%, var(--accent-color) 3000%);
     border: 1px solid #3e3d3d59;
     border-radius: 6px;
+    box-shadow: var(--shine-border);
 }
 
 .chartPreview {
@@ -190,6 +191,7 @@
     padding: 8px;
     gap: 8px;
     transition: opacity .4s, bottom .4s;
+    backdrop-filter: blur(8px);
 }
 
 #performanceTimetravelPanel[hidden="1"] {

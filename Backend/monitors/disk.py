@@ -45,14 +45,18 @@ class DISK_Monitor(monitor.MonitorBase):
                     title="Used",
                     getter=lambda: self.format_size(self.get_usage().used),
                     important_item=False,
-                    suppress_errors=True
+                    suppress_errors=True,
+                    trackable=True,
+                    trackable_getter=lambda: self.get_usage().used
                 ),
                 metrics.KeyValueMetric(
                     identificator=Identificator(f"disk-{mountpoint}", "free-size"),
                     title="Free",
                     getter=lambda: self.format_size(self.get_usage().free),
                     important_item=False,
-                    suppress_errors=True
+                    suppress_errors=True,
+                    trackable=True,
+                    trackable_getter=lambda: self.get_usage().free
                 )
             ),
             
@@ -75,7 +79,6 @@ class DISK_Monitor(monitor.MonitorBase):
             if abs(b) < 1024.0:
                 return f"{b:3.1f} {unit}"
             b /= 1024.0
-            
 
 
 registered_partitions = {}

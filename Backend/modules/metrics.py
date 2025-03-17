@@ -1,4 +1,5 @@
 from modules import identificators
+from modules import tracking
 from modules import state
 from modules import logs
 
@@ -105,10 +106,15 @@ class KeyValueMetric:
     getter: Callable[[], MetricValueT] | StaticValueGetter
     important_item: bool = False  # Changes style on frontend.
     suppress_errors: bool = False
+    trackable: bool = False
+    trackable_getter: Callable[[], int | float] | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.getter, StaticValueGetter):
             AsyncReportingValueGetter(self)
+            
+        if self.trackable:
+            tracking.register_trackable_metric(self)
 
 
 class MetricsRow:

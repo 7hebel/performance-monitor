@@ -4,7 +4,7 @@
 :root {
     --accent-color: #583a3e;
     --text-color: #e1e0e0;
-    --shine-border: inset 0px 1px 0px 0px #98989829;
+    --shine-border: inset 0px 1px 0px 0px #9898983b;
     --perf-timing-color: #97c47e;
     --perf-timetravel-progress: 43%;
 }
@@ -141,7 +141,7 @@ body {
     border-radius: 8px 8px 0px 0px;
     padding-block: 8px;
     padding-inline: 12px;
-    box-sizing: var(--shine-border);
+    box-shadow: var(--shine-border);
 }
 
 .panelHeader > h3 {
@@ -170,4 +170,55 @@ body {
     background: #ffffff57;
     cursor: pointer;
     border-radius: 100px;
+}
+
+.radio-inputs {
+    display: flex;
+    position: relative;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    border: 1px solid #ffffff1f;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text-color);
+    background-color: #00000040;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+    flex-direction: row;
+}
+
+.radio-inputs .radio {
+    flex: 1 1 auto;
+    text-align: center;
+    transition: background-color .4s;
+    border-radius: 4px;
+}
+
+.radio-inputs .radio input {
+    display: none;
+}
+
+.radio-inputs .radio .name {
+    display: flex;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    border: none;
+    padding-block: 1.5px;
+    color: var(--font-color);
+    transition: background-color .2s;
+    padding-inline: 8px;
+    font-weight: 400 !important;
+}
+
+.radio-inputs .radio:hover {
+    border-radius: 4px;
+    background-color: #58585838;
+}
+
+.radio-inputs .radio input:checked + .name {
+    background-color: #ffffff12;
+    outline: 1px solid #ffffff1a;
+    color: white;
 }

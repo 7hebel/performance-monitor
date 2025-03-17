@@ -1,4 +1,5 @@
 from modules import processes
+from modules import tracking
 from modules import history
 from modules import monitor
 from modules import state
@@ -8,6 +9,7 @@ from starlette.websockets import WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from dataclasses import asdict
+from pydantic import BaseModel
 from enum import StrEnum
 import threading
 import fastapi
@@ -42,6 +44,7 @@ class EventType(StrEnum):
     PERF_COMPOSITION_REQUEST = "perf-composition-request"
     ALL_PROCESSES_REQUEST = "all-processes-request"
     KILL_PROC_REQUEST = "proc-kill-request"
+    REMOVE_TRACKER = "remove-tracker"
 
 
 @server.get("/perf-history/points")
@@ -50,7 +53,6 @@ async def get_performance_history_points(request: fastapi.Request) -> JSONRespon
     dated_clusters = history.prepare_dated_clusters()
     logs.log("History", "info", f"Prepared and sent history points to: {request.client.host}:{request.client.port}")
     return JSONResponse(dated_clusters)
-
 
 @server.get("/perf-history/query-cluster/{cluster}")
 async def query_performance_history_cluster(cluster: int, request: fastapi.Request) -> JSONResponse:
@@ -62,6 +64,65 @@ async def query_performance_history_cluster(cluster: int, request: fastapi.Reque
 
     logs.log("History", "info", f"Sent cluster: `{cluster}` to: {request.client.host}:{request.client.port}")
     return JSONResponse(cluster_data)
+
+@server.get("/trackers/get-trackable")
+async def get_trackable_metrics(request: fastapi.Request) -> JSONResponse:
+    """ Returns all trackable metrics' names and ids groupped by category. """
+    trackable = tracking.prepare_trackable_metrics_per_category()
+    logs.log("Tracking", "info", f"Sent trackable metrics to: {request.client.host}:{request.client.port}")
+    return JSONResponse(trackable)
+
+@server.get("/trackers/get-active-trackers")
+async def get_active_trackers(request: fastapi.Request) -> JSONResponse:
+    """ Returns all active trackers' brief information. """
+    active_trackers = tracking.prepare_active_trackers()
+    logs.log("Tracking", "info", f"Sent {len(active_trackers)} active trackers data to: {request.client.host}:{request.client.port}")
+    return JSONResponse(active_trackers)
+
+
+class CreateTrackerRequestModel(BaseModel):
+    trackedId: str
+    stmtOp: str
+    avgPeriod: str
+    limitValue: int | float
+    
+
+@server.post("/trackers/create")
+async def create_tracker(tracker: CreateTrackerRequestModel, request: fastapi.Request) -> JSONResponse:
+    """ Create new tracker using sent data. Returns {'status': True/False, 'err_msg': '...'} based on validation status. """
+    metric = None
+    for trackable_metric in tracking.TRACKABLE_METRICS:
+        if trackable_metric.identificator.full() == tracker.trackedId:
+            metric = trackable_metric
+            break
+    else:
+        logs.log("Tracking", "error", f"{request.client.host}:{request.client.port} attempted to create alert on: `{tracker.trackedId}` which is not registered as trackable.")
+        return JSONResponse({"status": False, "err_msg": "Invalid metric. (May not exist anymore)"})
+    
+    for tracked_metric in tracking.TRACKERS:
+        if tracked_metric.tracked_id == tracker.trackedId:
+            logs.log("Tracking", "error", f"{request.client.host}:{request.client.port} attempted to create alert on: `{tracker.trackedId}` which is already tracked by another tracker.")
+            return JSONResponse({"status": False, "err_msg": "This metric is already tracked."})
+    
+    if tracker.stmtOp not in "<>":
+        logs.log("Tracking", "error", f"{request.client.host}:{request.client.port} attempted to create alert on: `{tracker.trackedId}` but provided invalid statement op: `{tracker.stmtOp}`.")
+        return JSONResponse({"status": False, "err_msg": "Invalid statement operator (</>)."})
+    
+    if tracker.avgPeriod not in ("minute", "hour"):
+        logs.log("Tracking", "error", f"{request.client.host}:{request.client.port} attempted to create alert on: `{tracker.trackedId}` but provided invalid avg period: `{tracker.avgPeriod}`.")
+        return JSONResponse({"status": False, "err_msg": "Invalid average period (minute/hour)."})
+    
+    tracker_meta = tracking.TrackerMeta(
+        tracked_id=metric.identificator.full(),
+        tracked_name=metric.title,
+        target_category=metric.identificator.category,
+        stmt_op=tracker.stmtOp,
+        stmt_value=tracker.limitValue,
+        avg_period=tracker.avgPeriod
+    )
+    tracking.add_tracker(tracker_meta)
+    
+    return JSONResponse({"status": True, "err_msg": ""})
 
 
 @server.websocket("/ws-stream")
@@ -124,6 +185,10 @@ async def handle_ws_message(msg: dict) -> None:
 
         logs.log("Connection", "info", f"Client requested process kill: {data}")
         observer.try_kill()
+        
+    if event == EventType.REMOVE_TRACKER:
+        tracking.remove_tracker(data)
+        logs.log("Tracking", "warn", f"Client removed tracker: {data}")
 
 
 def updates_sender() -> None:
