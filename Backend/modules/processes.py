@@ -32,12 +32,6 @@ class ProcessObserver:
     def add_process(self, process: psutil.Process) -> None:
         self.processes[process.pid] = process
         
-    def __format_size(self, b: int) -> str:
-        for unit in ("b", "Kb", "Mb", "Gb", "Tb", "Pb"):
-            if abs(b) < 1024.0:
-                return f"{b:3.1f} {unit}"
-            b /= 1024.0
-        
     def grab_processes_data(self) -> ProcessData:
         cpu_usage = 0
         mem_usage = 0
@@ -66,7 +60,7 @@ class ProcessObserver:
         return ProcessData(
             name=self.name,
             cpu_usage=f"{round(cpu_usage / CPUS_COUNT, 2)}%",
-            mem_use_mb=self.__format_size(mem_usage),
+            mem_use_mb=str(round(mem_usage / (1024 * 1024), 2)) + " Mb",
             threads=threads,
             proc_count=proc_count,
             status=True

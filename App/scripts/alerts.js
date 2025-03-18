@@ -1,5 +1,6 @@
 const noNotificationsAlert = document.getElementById("noNotificationsAlert");
-const trackersContainer = document.getElementById("alertsContainer");
+const trackersContainer = document.getElementById("trackersContainer");
+const raisedAlertsContainer = document.getElementById("raisedAlerts");
 const trackersCounter = document.getElementById("alertsCount");
 const trackersPerCategory = {};
 
@@ -97,7 +98,7 @@ function createNewTracker() {
                 errorLabel.textContent = result.err_msg;
             } else {
                 errorLabel.textContent = "";
-                const triggerStmt = `${statementOp} ${metricValue} for a minute`;
+                const triggerStmt = `${statementOp} ${metricValue}`;
                 buildMetricTrackerEntry(id, category, name, triggerStmt);
                 document.getElementById("alertStatementMetric").value = "0";
                 document.getElementById("alertStatementValue").value = "";
@@ -163,6 +164,24 @@ function fetchActiveTrackers() {
         });
 }
 
+function fetchHistoricalAlerts() {
+    const options = {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+    };
+    
+    fetch(HTTP_PROTO + "://" + API_ADDRESS + "/trackers/get-historical-alerts", options)
+        .then(response => response.json())
+        .then(alerts => {
+            alerts.forEach(
+                (alertData) => addRaisedAlert(alertData.category, alertData.title, alertData.reason, alertData.timeinfo, 0)
+            )
+        })
+        .catch(error => {
+            console.error('Error while fetching trackable metrics', error);
+        });
+}
+
 function trackerColor(ratio) {
     const color1 = [240, 144, 144];
     const color2 = [192, 237, 183];
@@ -187,10 +206,36 @@ function handleTrackersUpdatePacket(updates) {
             if (trackerEl) {
                 trackerEl.textContent = value;
                 trackerEl.style = `color: ${color}`;
-
             }
         }
     )
+}
+
+function markAlertAsSeen(el) {
+    el.setAttribute("active", 0);
+    for (alertEl of document.querySelectorAll(".raisedAlert")) {
+        if (alertEl.getAttribute("active") == "1") return
+    }
+    document.getElementById("alertNotification").setAttribute("active", "0");
+}
+
+function addRaisedAlert(category, title, reason, date, active=0) {
+    const element = `
+        <div class="raisedAlert" active="${active}" onclick="markAlertAsSeen(this)">
+            <div class="trackedMetric" style="--category-color: ${categoryColors[category] ?? 'var(--accent-color)'}">
+                <div class="trackedMetricHeader">
+                    <span class="trackedMetricCategory">${category}</span>
+                    <span class="trackedMetricTitle">${title}</span>
+                </div>
+                <span class="trackedMetricTrigger">${reason}</span>
+                <span class="trackedMetricCurrentValue">${date}</span>
+            </div>
+        </div>
+    `;
+
+    raisedAlertsContainer.innerHTML = element + raisedAlertsContainer.innerHTML;
+
+    if (active) document.getElementById("alertNotification").setAttribute("active", "1");
 }
 
 checkNotificationsPerms();

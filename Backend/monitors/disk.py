@@ -47,7 +47,7 @@ class DISK_Monitor(monitor.MonitorBase):
                     important_item=False,
                     suppress_errors=True,
                     trackable=True,
-                    trackable_formatter=lambda _: self.get_usage().used
+                    trackable_formatter=lambda v: float(v.split(" ")[0])
                 ),
                 metrics.KeyValueMetric(
                     identificator=Identificator(f"disk-{self.mountpoint}", "free-size"),
@@ -56,7 +56,7 @@ class DISK_Monitor(monitor.MonitorBase):
                     important_item=False,
                     suppress_errors=True,
                     trackable=True,
-                    trackable_formatter=lambda _: self.get_usage().free
+                    trackable_formatter=lambda v: float(v.split(" ")[0])
                 )
             ),
             

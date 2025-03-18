@@ -42,6 +42,7 @@
         <div class="tab" onclick="switchTab(this, `tab-alerts`); fetchTrackableMetrics();" tabColor="#3960b9">
             <i class="tabIcon fa-solid fa-bell"></i>
             <p class="tabTitle">Alerts</p>
+            <div id="alertNotification" active="0"></div>
         </div>
         <div class="tabsSep"></div>
         
@@ -52,7 +53,7 @@
 
     <div id="tabsViews">
 
-        <div class="tabView" id="tab-performance" active="0">
+        <div class="tabView" id="tab-performance" active="1">
             <div id="monitorsList" class="panel shine">
                 <div id="performanceTimingInfo">
                     <div class="dot"></div>
@@ -66,6 +67,30 @@
                         <span>{</span><span>}</span>
                     </div>
                 </div>
+            </div>
+
+            <div id="performanceTimetravelPanel" hidden="1" class="shine">
+                <select class="performanceTimetravelSelect" id="timetravelDate">
+                    <option value="0">Date</option>
+                </select>
+                <select class="performanceTimetravelSelect" id="timetravelHours">
+                    <option value="0">Hour</option>
+                </select>
+                <button id="timetravelRunBtn" onclick="queryTravelData()">
+                    <i class="fa-solid fa-play"></i>
+                    Travel
+                </button>
+                <div class="tabsSep" style="margin-inline: 8px;"></div>
+            
+                <i class="timetravelChagneDumpBtn fa-solid fa-angle-left" onclick="previousTimetravelMinute()"></i>
+                <p id="timetravelCurrentTime">
+                    <span id="timetravelCurrentHour">-</span>:<span id="timetravelCurrentMinute">-</span>:<span
+                        id="timetravelCurrentSecond">-</span>
+                </p>
+                <i class="timetravelChagneDumpBtn fa-solid fa-angle-right" onclick="nextTimetravelMinute()"></i>
+                <div class="tabsSep" style="margin-inline: 8px;"></div>
+                <i class="timetravelChagneDumpBtn fa-solid fa-xmark" style="margin-right: 8px;"
+                    onclick="switchTimeTravelMode()"></i>
             </div>
         </div>
 
@@ -86,7 +111,7 @@
             </div>
         </div>
 
-        <div class="tabView" id="tab-alerts" active="1">
+        <div class="tabView" id="tab-alerts" active="0">
             <div class="alertsPanel panel shine">
                 <div id="noNotificationsAlert">
                     <i class="fa-solid fa-triangle-exclamation"></i>
@@ -132,45 +157,43 @@
                     <span id="alertCreationError"></span>
                 </div>
                 
-                <h1 class="alertsHeader">
-                    <i class="fa-solid fa-magnifying-glass-chart"></i>
-                    Tracking
-                    <span id="alertsCount">0</span>
-                    metrics
-                </h1>
-
-                <div id="alertsContainer">
-                    <div class="trackersInfo">
-                        <span>Category & metric</span>
-                        <span>Approximate value</span>
-                        <span>Alert condition</span>
+                <div class="trackersAndAlertsGroup">
+                    <div class="trackersGroup">
+                        <h1 class="alertsHeader">
+                            <i class="fa-solid fa-magnifying-glass-chart"></i>
+                            Tracking
+                            <span id="alertsCount">0</span>
+                            metrics
+                        </h1>
+        
+                        <div id="trackersContainer" class="tableContainer">
+                            <div class="trackersInfo">
+                                <span>Category & metric</span>
+                                <span>Approximate value</span>
+                                <span>Alert condition</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alertsGroup">
+                        <h1 class="alertsHeader">
+                            <i class="fa-solid fa-bell"></i>
+                            Raised alerts
+                        </h1>
+        
+                        <div id="raisedAlertsContainer" class="tableContainer">
+                            <div class="trackersInfo">
+                                <span>Metric</span>
+                                <span>Reason</span>
+                                <span>Date</span>
+                            </div>
+                            
+                            <div id="raisedAlerts"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-    </div>
-
-    <div id="performanceTimetravelPanel" hidden="1" class="shine">
-        <select class="performanceTimetravelSelect" id="timetravelDate">
-            <option value="0">Date</option>
-        </select>
-        <select class="performanceTimetravelSelect" id="timetravelHours">
-            <option value="0">Hour</option>
-        </select>
-        <button id="timetravelRunBtn" onclick="queryTravelData()">
-            <i class="fa-solid fa-play"></i>
-            Travel
-        </button>
-        <div class="tabsSep" style="margin-inline: 8px;"></div>
-
-        <i class="timetravelChagneDumpBtn fa-solid fa-angle-left" onclick="previousTimetravelMinute()"></i>
-        <p id="timetravelCurrentTime">
-            <span id="timetravelCurrentHour">-</span>:<span id="timetravelCurrentMinute">-</span>:<span id="timetravelCurrentSecond">-</span>
-        </p>
-        <i class="timetravelChagneDumpBtn fa-solid fa-angle-right" onclick="nextTimetravelMinute()"></i>
-        <div class="tabsSep" style="margin-inline: 8px;"></div>
-        <i class="timetravelChagneDumpBtn fa-solid fa-xmark" style="margin-right: 8px;" onclick="switchTimeTravelMode()"></i>
     </div>
 </body>
 </html>

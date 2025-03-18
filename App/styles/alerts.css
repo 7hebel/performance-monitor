@@ -11,7 +11,7 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    height: 64px;
+    min-height: 52px;
     background-color: #ff7d0057;
     border: 1px solid #ffaf6366;
     border-radius: 6px;
@@ -173,7 +173,7 @@
     margin-inline: 8px;
 }
 
-#alertsContainer {
+.tableContainer {
     width: 100%;
     height: 100%;
     overflow-y: auto;
@@ -220,6 +220,7 @@
     font-weight: 500;
     border-radius: 4px 0px 0px 4px;
     border-right: 1px solid #ffffff0f;
+    white-space: nowrap;
 }
 
 .trackedMetricTitle {
@@ -279,3 +280,72 @@
     font-family: 'Ubuntu Sans Mono' !important;
     font-size: 14px;
 }
+
+.trackersAndAlertsGroup {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    width: 100%;
+    gap: 8px;
+}
+
+.trackersGroup {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+}
+
+.alertsGroup {
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: scroll;
+}
+
+.raisedAlert .trackedMetricCategory,
+.raisedAlert .trackedMetricTitle {
+    font-size: 12px;
+    padding-top: 0px;
+}
+
+.raisedAlert .trackedMetricHeader {
+    height: auto;
+}
+
+.raisedAlert .trackedMetricTrigger {
+    font-size: 12px;
+}
+.raisedAlert .trackedMetricCurrentValue {
+    font-size: 12px;
+    color: gray;
+}
+
+.raisedAlert[active="1"] .trackedMetricCurrentValue {
+    color: white !important
+}
+
+.raisedAlert[active="1"] .trackedMetric {
+    background:#ff78007d !important;
+    cursor: pointer;
+}
+
+#raisedAlerts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+}
+
+#alertNotification {
+    width: 6px;
+    height: 6px;
+    background-color: #ff7700b9;
+    border: 1px solid #ff7700;
+    border-radius: 6px;
+    box-shadow: 0px 0px 8px 1px #ff7700;
+}
+
+#alertNotification[active="0"] {
+    display: none;
+}
+

@@ -45,6 +45,7 @@ function setupSocket() {
         console.log("Connection opened");
         _sendMessageToServer(EV_REQUEST_COMPOSITION);
         _sendMessageToServer(EV_REQUEST_ALL_PROCESSES);
+        fetchHistoricalAlerts();
         fetchTrackableMetrics();
         fetchActiveTrackers();
     });
@@ -118,8 +119,10 @@ async function handleMessage(evtype, data) {
     }
 
     if (evtype == EV_RAISE_ALERT) {
-        const {title, body} = data;
-        sendNotification(title, body);
+        const notificationTitle = `${data.category} - ${data.title}`;
+        const notificationDesc = `The alert has been raised for: ${data.title} as: ${data.reason}`;
+        sendNotification(notificationTitle, notificationDesc);
+        addRaisedAlert(data.category, data.title, data.reason, data.timeinfo, 1);
     }
     
 }

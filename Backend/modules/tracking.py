@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from modules import metrics
 
 from dataclasses import dataclass, asdict, field
+from datetime import datetime
 import time
 import json
 
@@ -19,14 +20,17 @@ class TrackerMeta:
     stmt_op: Literal[">", "<"]
     stmt_value: int | float
     _values: list[int | float] = field(default_factory=lambda: [])  # Store and analyze values from this session
+    _last_update: int = 0
 
 
+ALERTS_HISTORY_PATH = "./data/alerts_history.txt"
 TRACKERS_FILEPATH = "./data/trackers.json"
 TRACKABLE_METRICS: dict[str, "metrics.KeyValueMetric"] = {}
 TRACKERS: dict[str, TrackerMeta] = {}
 
 def register_trackable_metric(metric: "metrics.KeyValueMetric") -> None:
     TRACKABLE_METRICS[metric.identificator.full()] = metric
+   
     
 def load_trackers() -> list[TrackerMeta]:
     with open(TRACKERS_FILEPATH, "r") as trackers_file:
@@ -47,18 +51,21 @@ def load_trackers() -> list[TrackerMeta]:
 
 load_trackers()
 
+
 def add_tracker(tracker_meta: TrackerMeta) -> None:
     with open(TRACKERS_FILEPATH, "r") as trackers_file:
         saved_trackers = json.load(trackers_file)
         
     saved_trackers[tracker_meta.tracked_id] = asdict(tracker_meta)
     saved_trackers[tracker_meta.tracked_id].pop("_values")
+    saved_trackers[tracker_meta.tracked_id].pop("_last_update")
     
     with open(TRACKERS_FILEPATH, "w") as trackers_file:
         json.dump(saved_trackers, trackers_file)
 
     TRACKERS[tracker_meta.tracked_id] = tracker_meta
     logs.log("Tracking", "info", f"Created tracker of asset: {tracker_meta.tracked_id} ({tracker_meta.tracked_name}) {tracker_meta.stmt_op} {tracker_meta.stmt_value}")        
+    
     
 def remove_tracker(tracked_id) -> None:
     if tracked_id not in TRACKERS:
@@ -91,6 +98,7 @@ def prepare_trackable_metrics_per_category() -> list[dict]:
     
     return trackable_metrics
 
+
 def prepare_active_trackers() -> list[dict]:
     active_trackers = []
     
@@ -108,12 +116,16 @@ def prepare_active_trackers() -> list[dict]:
     return active_trackers
     
 
-def raise_alert(metric_name: str, body: str) -> None:
+def raise_alert(category: str, title: str, reason: str) -> None:
+    timeinfo = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    
     message = {
         "event": connection.EventType.RAISE_ALERT,
         "data": {
-            "title": f"🔔 | {metric_name}",
-            "body": body
+            "category": category,
+            "title": title,
+            "reason": reason,
+            "timeinfo": timeinfo
         }
     }
 
@@ -122,6 +134,30 @@ def raise_alert(metric_name: str, body: str) -> None:
     except (RuntimeError, connection.WebSocketDisconnect):
         logs.log("Connection", "warn", f"Disconnected from: {connection.ws_client.client.host}:{connection.ws_client.client.port} (alert write error)")
         connection.ws_client = None
+        
+    with open(ALERTS_HISTORY_PATH, "a+") as history_file:
+        history_file.write(f"{category}\0{title}\0{reason}\0{timeinfo}\n")
+
+
+def load_historical_alerts() -> list[dict[str, str]]:
+    historical_alerts = []
+    
+    with open(ALERTS_HISTORY_PATH, "r") as history_file:
+        alerts = history_file.read().split("\n")[::-1]
+        for alert_data in alerts:
+            if not alert_data:
+                continue
+            
+            category, title, reason, timeinfo = alert_data.split("\0")
+            
+            historical_alerts.append({
+                "category": category,
+                "title": title,
+                "reason": reason,
+                "timeinfo": timeinfo
+            })
+            
+    return historical_alerts
 
 
 def pipe_updates_to_trackers(updates: dict[str, str | int | float]) -> None:
@@ -144,21 +180,21 @@ def pipe_updates_to_trackers(updates: dict[str, str | int | float]) -> None:
         
         state.trackers_approx_values_updates_buffer.insert_update(metric_id, {
             "value": round(avg_value, 2),
-            "ratio": round(values_ratio, 2)
+            "ratio": round(values_ratio, 2),
         })
         
-        if len(tracker._values) > 58:
+        if len(tracker._values) > 59 or (tracker._last_update > 0 and time.time() - tracker._last_update > 10):
             if tracker.stmt_op == "<" and avg_value < tracker.stmt_value:
                 logs.log("Tracking", "warn", f"Raising alert for: {tracker.tracked_id} as condition met: {avg_value}<{tracker.stmt_value}")
-                raise_alert(f"{tracker.target_category} - {tracker.tracked_name}", f"The value of {tracker.tracked_name}: {avg_value} exceeded alerting limit (<{tracker.stmt_value})")
+                raise_alert(tracker.target_category, tracker.tracked_name, f"{round(avg_value, 2)} {tracker.stmt_op} {tracker.stmt_value}")
                 tracker._values.clear()
                 
             if tracker.stmt_op == ">" and avg_value > tracker.stmt_value:
-                print("alert 1")
                 logs.log("Tracking", "warn", f"Raising alert for: {tracker.tracked_id} as condition met: {avg_value}>{tracker.stmt_value}")
-                raise_alert(f"{tracker.target_category} - {tracker.tracked_name}", f"The value of {tracker.tracked_name}: {avg_value} exceeded alerting limit (>{tracker.stmt_value})")
-                print("alert 2")
+                raise_alert(tracker.target_category, tracker.tracked_name, f"{round(avg_value, 2)} {tracker.stmt_op} {tracker.stmt_value}")
                 tracker._values.clear()
+                
+        tracker._last_update = int(time.time())
             
 
 state.perf_metrics_updates_buffer.attach_flush_listener(pipe_updates_to_trackers)

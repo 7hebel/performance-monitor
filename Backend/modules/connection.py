@@ -79,6 +79,13 @@ async def get_active_trackers(request: fastapi.Request) -> JSONResponse:
     logs.log("Tracking", "info", f"Sent {len(active_trackers)} active trackers data to: {request.client.host}:{request.client.port}")
     return JSONResponse(active_trackers)
 
+@server.get("/trackers/get-historical-alerts")
+async def get_historical_alerts(request: fastapi.Request) -> JSONResponse:
+    """ Returns all previously recorded alerts. """
+    historical_alerts = tracking.load_historical_alerts()
+    logs.log("Tracking", "info", f"Sent {len(historical_alerts)} historical alerts to: {request.client.host}:{request.client.port}")
+    return JSONResponse(historical_alerts)
+
 
 class CreateTrackerRequestModel(BaseModel):
     trackedId: str
@@ -215,5 +222,5 @@ def start_server(port: int = 50506):
         server,
         host="localhost",
         port=port,
-        # log_level="critical",
+        log_level="critical",
     )
