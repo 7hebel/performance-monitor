@@ -16,6 +16,7 @@ const EV_REQUEST_COMPOSITION = "perf-composition-request";
 const EV_REQUEST_PROC_KILL = "proc-kill-request";
 const EV_REQUEST_ALL_PROCESSES = "all-processes-request";
 const EV_REMOVE_TRACKER = "remove-tracker";
+const EV_CLEAR_ALERTS_HISTORY = "clear-alerts-history";
 
 const PACKET_PERFORMANCE = "perf-metrics";
 const PACKET_PROCESSES = "proc-stats";

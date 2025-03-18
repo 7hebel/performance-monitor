@@ -238,4 +238,9 @@ function addRaisedAlert(category, title, reason, date, active=0) {
     if (active) document.getElementById("alertNotification").setAttribute("active", "1");
 }
 
+function clearAlertsHistory() {
+    _sendMessageToServer(EV_CLEAR_ALERTS_HISTORY);
+    raisedAlertsContainer.innerHTML = "";
+}
+
 checkNotificationsPerms();

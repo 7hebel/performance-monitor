@@ -18,8 +18,8 @@ class TestIdentificators(unittest.TestCase):
         
         standard_identificator_str = f"{category}.{item_id}"
         parsed_standard_id = identificators.parse_identificator(standard_identificator_str)
-        self.assertEqual(parsed_standard_id.category, category, "Parsed category not matching actual category.")
         self.assertEqual(parsed_standard_id.item_id, item_id, "Parsed itemId not matching actual itemId.")
+        self.assertEqual(parsed_standard_id.category, category, "Parsed category not matching actual category.")
 
         invalid_identificator_str = f"{category} {item_id}"  # Invalid ID - no separator (`.`)
         with self.assertRaises(ValueError):
@@ -93,9 +93,8 @@ class TestState(unittest.TestCase):
         
         saved_state = buffer.flush()
         self.assertEqual(len(buffer.updates), 0, "Buffer was flushed, but some data remaining.")
-        self.assertEqual(len(saved_state), 2, "Buffer was filled, but when flushed resulted in blank dict.")
-        
-        
+        self.assertIn("test", saved_state, "Flushed buffer state does not contain buffer's id.")
+        self.assertEqual(len(saved_state["test"]), 2, "Buffer was filled, but when flushed resulted in blank dict.")
     
 
 if __name__ == '__main__':

@@ -1,5 +1,4 @@
 from modules import identificators
-from modules import tracking
 from modules import state
 from modules import logs
 
@@ -111,6 +110,8 @@ class KeyValueMetric:
     # ^ Formats .getter()'s readable output to numeric value.
     
     def __post_init__(self) -> None:
+        from modules import tracking
+        
         if not isinstance(self.getter, StaticValueGetter):
             AsyncReportingValueGetter(self)
             

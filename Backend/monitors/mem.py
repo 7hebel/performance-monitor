@@ -37,7 +37,7 @@ class MEM_Monitor(monitor.MonitorBase):
                     getter=lambda: self.readable_format(psutil.virtual_memory().used),
                     important_item=True,
                     trackable=True,
-                    trackable_formatter=lambda _: psutil.virtual_memory().used
+                    trackable_formatter=lambda v: float(v.split(" ", 1)[0])
                 ),
                 metrics.KeyValueMetric(
                     identificator=Identificator("mem", "free"),
@@ -45,7 +45,7 @@ class MEM_Monitor(monitor.MonitorBase):
                     getter=lambda: self.readable_format(psutil.virtual_memory().free),
                     important_item=True,
                     trackable=True,
-                    trackable_formatter=lambda _: psutil.virtual_memory().free
+                    trackable_formatter=lambda v: float(v.split(" ", 1)[0])
                 )
             ),
             

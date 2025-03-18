@@ -122,7 +122,7 @@ def raise_alert(category: str, title: str, reason: str) -> None:
     message = {
         "event": connection.EventType.RAISE_ALERT,
         "data": {
-            "category": category,
+            "category": category.upper(),
             "title": title,
             "reason": reason,
             "timeinfo": timeinfo
@@ -151,7 +151,7 @@ def load_historical_alerts() -> list[dict[str, str]]:
             category, title, reason, timeinfo = alert_data.split("\0")
             
             historical_alerts.append({
-                "category": category,
+                "category": category.upper(),
                 "title": title,
                 "reason": reason,
                 "timeinfo": timeinfo
@@ -159,6 +159,10 @@ def load_historical_alerts() -> list[dict[str, str]]:
             
     return historical_alerts
 
+
+def clear_historical_alerts() -> None:
+    open(ALERTS_HISTORY_PATH, "w+").close()
+    
 
 def pipe_updates_to_trackers(updates: dict[str, str | int | float]) -> None:
     for metric_id, value in updates.items():

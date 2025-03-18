@@ -159,11 +159,14 @@
     margin-top: 60px;
     margin-bottom: 12px;
     margin-left: 30px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
 }
 
 .alertsHeader > i {
     font-size: 20px;
-    margin-right: 10px;
     color: #ffffff61;
 }
 
@@ -349,3 +352,13 @@
     display: none;
 }
 
+.clearSeenAlertsBtn {
+    font-size: 12px !important;
+    color: #744b4b !important;
+    cursor: pointer;
+    transition: color .2s;
+}
+
+.clearSeenAlertsBtn:hover {
+    color: #a15b5b !important;
+}

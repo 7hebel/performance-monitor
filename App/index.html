@@ -161,9 +161,11 @@
                     <div class="trackersGroup">
                         <h1 class="alertsHeader">
                             <i class="fa-solid fa-magnifying-glass-chart"></i>
-                            Tracking
-                            <span id="alertsCount">0</span>
-                            metrics
+                            <span>
+                                Tracking
+                                <span id="alertsCount">0</span>
+                                metrics
+                            </span>
                         </h1>
         
                         <div id="trackersContainer" class="tableContainer">
@@ -178,6 +180,7 @@
                         <h1 class="alertsHeader">
                             <i class="fa-solid fa-bell"></i>
                             Raised alerts
+                            <i class="fa-solid fa-trash clearSeenAlertsBtn" onclick="clearAlertsHistory();"></i>
                         </h1>
         
                         <div id="raisedAlertsContainer" class="tableContainer">

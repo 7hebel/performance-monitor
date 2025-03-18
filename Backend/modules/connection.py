@@ -33,9 +33,9 @@ ws_client: fastapi.WebSocket | None = None
 class EventType(StrEnum):
     # Send:
     PERF_COMPOSITION_DATA = "perf-composition-data"
-    PERF_ADD_MONITOR = "perf-add-monitor"
     PERF_REMOVE_MONITOR = "perf-remove-monitor"
     PERF_METRICS_UPDATE = "perf-metrics-update"
+    PERF_ADD_MONITOR = "perf-add-monitor"
     PROC_LIST_PACKET = "proc-list-packet"
     UPDATE_PACKET = "update-packet"
     RAISE_ALERT = "raise-alert"
@@ -43,6 +43,7 @@ class EventType(StrEnum):
     # Receive:
     PERF_COMPOSITION_REQUEST = "perf-composition-request"
     ALL_PROCESSES_REQUEST = "all-processes-request"
+    CLEAR_ALERTS_HISTORY = "clear-alerts-history"
     KILL_PROC_REQUEST = "proc-kill-request"
     REMOVE_TRACKER = "remove-tracker"
 
@@ -185,6 +186,10 @@ async def handle_ws_message(msg: dict) -> None:
     if event == EventType.REMOVE_TRACKER:
         tracking.remove_tracker(data)
         logs.log("Tracking", "warn", f"Client removed tracker: {data}")
+
+    if event == EventType.CLEAR_ALERTS_HISTORY:
+        tracking.clear_historical_alerts()
+        logs.log("Tracking", "info", "Client cleared alerts history")
 
 
 def updates_sender() -> None:
