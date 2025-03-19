@@ -19,10 +19,9 @@ if not os.path.exists(ALERTS_HISTORY_PATH): open(ALERTS_HISTORY_PATH, "a+").clos
 
 from modules import connection
 from modules import processes
-from modules import tracking
 import monitors
+
 
 threading.Thread(target=processes.processes_checker, daemon=True).start()
 
 connection.start_server()
-

@@ -27,7 +27,7 @@ server.add_middleware(
     allow_headers=["*"],
 )
 
-ws_client: fastapi.WebSocket | None = None
+ws_clients: list[fastapi.WebSocket] = []
 
 
 class EventType(StrEnum):
@@ -124,81 +124,80 @@ async def create_tracker(tracker: CreateTrackerRequestModel, request: fastapi.Re
 
 @server.websocket("/ws-stream")
 async def handle_ws_connection(websocket: fastapi.WebSocket):
-    global ws_client
-    if ws_client:
-        return logs.log("Connection", "warn", f"Refused incoming WS connection from: {websocket.client.host}:{websocket.client.port} as current has not been closed.")
+    global ws_clients
 
     # Accept incoming connection and finish handshake.
     await websocket.accept()
     await websocket.send_json({})
-    ws_client = websocket
-    logs.log("Connection", "info", f"Accepted incoming WS connection from: {websocket.client.host}:{websocket.client.port}")
+    ws_clients.append(websocket)
+    logs.log("Connection", "info", f"Accepted incoming WS connection from: {websocket.client.host}:{websocket.client.port} (total clients: {len(ws_clients)})")
 
     # Listen to incoming WS message and delegate them to handler. Detect client's disconnection.
     while True:
         try:
             data = await websocket.receive_json()
-            await handle_ws_message(data)
+            await handle_ws_message(websocket, data)
 
         except fastapi.WebSocketDisconnect:
             logs.log("Connection", "warn", f"Disconnected WS connection with: {websocket.client.host}:{websocket.client.port} (reading error)")
             await websocket.close()
-            ws_client = None
+            ws_clients.remove(websocket)
 
 
-async def handle_ws_message(msg: dict) -> None:
+async def handle_ws_message(client: fastapi.WebSocket, msg: dict) -> None:
     """ Handle messages coming from WebSocket's client. """
     event = msg.get("event")
     data = msg.get("data")
 
-    if event == EventType.PERF_COMPOSITION_REQUEST:
-        logs.log("Connection", "info", f"Client requested performance composition data.")
+    match event:
+        case EventType.PERF_COMPOSITION_REQUEST:
+            logs.log("Connection", "info", f"Client: {client.client.host}:{client.client.port} requested performance composition data.")
+    
+            message = {
+                "event": EventType.PERF_COMPOSITION_DATA,
+                "data": monitor.prepare_composition_data()
+            }
+            await client.send_json(message)
 
-        message = {
-            "event": EventType.PERF_COMPOSITION_DATA,
-            "data": monitor.prepare_composition_data()
-        }
-        await ws_client.send_json(message)
+        case EventType.ALL_PROCESSES_REQUEST:
+            logs.log("Connection", "info", f"Client: {client.client.host}:{client.client.port} requested all processes data.")
+    
+            processes_packet = {}
+            for pid, process_observer in processes.ProcessObserver.observers.copy().items():
+                process_data = process_observer.grab_processes_data()
+                if process_data is not None:
+                    processes_packet[pid] = asdict(process_data)
+    
+            message = {
+                "event": EventType.PROC_LIST_PACKET,
+                "data": processes_packet
+            }
+            await client.send_json(message)
 
-    if event == EventType.ALL_PROCESSES_REQUEST:
-        logs.log("Connection", "info", f"Client requested all processes data.")
-
-        processes_packet = {}
-        for pid, process_observer in processes.ProcessObserver.observers.copy().items():
-            process_data = process_observer.grab_processes_data()
-            if process_data is not None:
-                processes_packet[pid] = asdict(process_data)
-
-        message = {
-            "event": EventType.PROC_LIST_PACKET,
-            "data": processes_packet
-        }
-        await ws_client.send_json(message)
-
-    if event == EventType.KILL_PROC_REQUEST:
-        observer = processes.ProcessObserver.observers.get(data)
-        if observer is None:
-            return logs.log("Connection", "error", f"Client requested process kill: {data} but no observer is observing this process.")
-
-        logs.log("Connection", "info", f"Client requested process kill: {data}")
-        observer.try_kill()
+        case EventType.KILL_PROC_REQUEST:
+            observer = processes.ProcessObserver.observers.get(data)
+            if observer is None:
+                return logs.log("Connection", "error", f"Client: {client.client.host}:{client.client.port} requested process kill: {data} but no observer is observing this process.")
+    
+            logs.log("Connection", "info", f"Client: {client.client.host}:{client.client.port} requested process kill: {data}")
+            observer.try_kill()
         
-    if event == EventType.REMOVE_TRACKER:
-        tracking.remove_tracker(data)
-        logs.log("Tracking", "warn", f"Client removed tracker: {data}")
-
-    if event == EventType.CLEAR_ALERTS_HISTORY:
-        tracking.clear_historical_alerts()
-        logs.log("Tracking", "info", "Client cleared alerts history")
+        case EventType.REMOVE_TRACKER:
+            tracking.remove_tracker(data)
+            logs.log("Tracking", "warn", f"Client: {client.client.host}:{client.client.port} removed tracker: {data}")
+    
+        case EventType.CLEAR_ALERTS_HISTORY:
+            tracking.clear_historical_alerts()
+            logs.log("Tracking", "info", "Client: {client.client.host}:{client.client.port} cleared alerts history")
 
 
 def updates_sender() -> None:
     """ Sent awaiting updates packets from all buffers. """
-    global ws_client
+    global ws_clients
 
     while True:
         time.sleep(1)
-        if ws_client is None:
+        if not ws_clients:
             continue
         
         # Prepare non-blank buffers packet.
@@ -214,10 +213,11 @@ def updates_sender() -> None:
         }
 
         try:
-            asyncio.run(ws_client.send_json(message))
+            for ws_client in ws_clients:
+                asyncio.run(ws_client.send_json(message))
         except (RuntimeError, WebSocketDisconnect):
             logs.log("Connection", "warn", f"Disconnected from: {ws_client.client.host}:{ws_client.client.port} (write error)")
-            ws_client = None
+            ws_clients.remove(ws_client)
 
 
 def start_server(port: int = 50506):

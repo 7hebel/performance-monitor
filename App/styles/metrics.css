@@ -83,7 +83,7 @@
 .chartMetric {
     width: 100%;
     height: 400px;
-    background: linear-gradient(160deg, #303030 0%, var(--accent-color) 3000%);
+    background: linear-gradient(160deg, #303030 0%, var(--accent-color) 2000%);
     border: 1px solid #3e3d3d59;
     border-radius: 6px;
     box-shadow: var(--shine-border);

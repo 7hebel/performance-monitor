@@ -92,11 +92,9 @@ async function handleMessage(evtype, data) {
     }
 
     if (evtype == EV_UPDATE_PACKET) {
-        if (!REALTIME_MODE) return;
-
         Object.entries(data).forEach(
             ([packetId, updates]) => {
-                if (packetId == PACKET_PERFORMANCE) handlePerformanceUpdatePacket(updates);
+                if (packetId == PACKET_PERFORMANCE && REALTIME_MODE) handlePerformanceUpdatePacket(updates);
                 if (packetId == PACKET_PROCESSES) handleProcessesUpdatePacket(updates);
                 if (packetId == PACKET_TRACKERS) handleTrackersUpdatePacket(updates);
             }

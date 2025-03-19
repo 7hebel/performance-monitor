@@ -235,6 +235,7 @@
     font-family: 'Ubuntu Sans Mono';
     border-right: 1px solid #ffffff0f;
     background-color: #2b2b2bd1;
+    white-space: nowrap;
 }
 
 .trackedMetricCurrentValue {

@@ -130,10 +130,11 @@ def raise_alert(category: str, title: str, reason: str) -> None:
     }
 
     try:
-        connection.asyncio.run(connection.ws_client.send_json(message))
+        for ws_client in connection.ws_clients:
+            connection.asyncio.run(ws_client.send_json(message))
     except (RuntimeError, connection.WebSocketDisconnect):
-        logs.log("Connection", "warn", f"Disconnected from: {connection.ws_client.client.host}:{connection.ws_client.client.port} (alert write error)")
-        connection.ws_client = None
+        logs.log("Connection", "warn", f"Disconnected from: {ws_client.client.host}:{ws_client.client.port} (alert write error)")
+        connection.ws_clients.remove(ws_client)
         
     with open(ALERTS_HISTORY_PATH, "a+") as history_file:
         history_file.write(f"{category}\0{title}\0{reason}\0{timeinfo}\n")
