@@ -1,0 +1,110 @@
+@media only screen and (max-width: 1030px) {
+    .trackersAndAlertsGroup {
+        flex-direction: column;
+    }
+
+    .alertsHeader {
+        margin-top: 26px;
+    }
+
+    .trackersGroup, .alertsGroup {
+        width: 100% !important;
+    }
+}
+
+@media only screen and (max-width: 950px) {
+    .alertStatementBlock {
+        padding-block: 12px;
+        justify-content: center;
+    }
+}
+
+@media only screen and (max-width: 860px) {
+    .tabView {
+        flex-direction: column;
+    }
+
+    #performanceTimingInfo {
+        position: absolute;
+        top: 8px;
+    }
+
+    #performanceHistoryBtn {
+        right: 20px;
+    }
+
+    #monitorsList {
+        max-width: unset;
+        min-width: unset;
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto;
+        height: 212px;
+        min-height: 212px;
+        padding-top: 50px;
+    }
+
+    .monitorEntry {
+        min-width: 120px;
+    }
+}
+
+
+@media only screen and (max-width: 640px) {
+    .metricsRow {
+        flex-direction: column;
+    }
+
+    .metricsContainer {
+        padding-bottom: 0%;
+        margin-bottom: 20px;
+    }
+}
+
+@media only screen and (max-width: 460px) {
+    #tabsContainer {
+        min-height: 46px;
+        overflow-x: scroll;
+        overflow-y: hidden;
+    }
+
+    .tab {
+        height: 32px;
+    }
+
+    #connectionStatus {
+        position: unset;
+    }
+
+    .trackedMetricCategory, 
+    .trackedMetricTitle,
+    .trackedMetricCurrentValue,
+    .trackedMetricTrigger {
+        font-size: 14px;
+    }
+
+    .trackedMetricTitle {
+        padding-top: 0px;
+    }
+
+    .trackedMetricHeader {
+        height: min-content;
+    }
+
+    .trackedMetric {
+        padding: 4px;
+    }
+
+    .trackedMetricCategory {
+        padding-block: 3px;
+    }
+
+    .trackedMetricRemove {
+        font-size: 10px;
+    }
+
+    .trackersInfo > span {
+        text-align: center;
+    }
+}
+

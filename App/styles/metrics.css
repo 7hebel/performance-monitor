@@ -6,6 +6,11 @@
     width: 100%;
 }
 
+.metricTitle,
+.metricValue {
+    white-space: nowrap;
+}
+
 /* KeyValue metric (IMPORTANT) */
 
 .kvMetricImportant {
@@ -175,7 +180,7 @@
 /* Time travel mode */
 
 #performanceTimetravelPanel {
-    position: absolute;
+    position: fixed;
     height: 48px;
     width: max-content;
     background-color: #1f1f1fb5;

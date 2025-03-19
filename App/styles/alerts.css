@@ -18,6 +18,7 @@
     align-items: center;
     padding-inline: 8px;
     margin-bottom: 12px;
+    text-align: center;
 }
 
 #noNotificationsAlert > span {
@@ -59,10 +60,10 @@
 
 .backgroundIcon {
     position: absolute;
-    top: 16px;
+    top: 10px;
     left: 16px;
     color: #ffffff0a;
-    font-size: 90px;
+    font-size: 60px;
     z-index: 0 !important;
     background: -webkit-linear-gradient(0deg, #ffffff11, #ffffff00 70%);
     background-clip: text;
@@ -78,16 +79,15 @@
 .alertStatementBlock {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     z-index: 1;
-    width: max-content;
-    height: 60px;
+    min-height: 60px;
     background-color: #0003;
     border-radius: 6px;
     border: 1px solid #ffffff08;
     padding-inline: 16px;
     gap: 8px;
-    margin-block: 20px;
 }
 
 .alertStatementBlock > select {
@@ -244,6 +244,7 @@
     padding-inline: 8px;
     font-size: 18px;
     font-weight: 500;
+    text-align: right;
 }
 
 .trackedMetricTrigger {
@@ -294,16 +295,15 @@
 }
 
 .trackersGroup {
-    width: 70%;
+    width: 60%;
     display: flex;
     flex-direction: column;
 }
 
 .alertsGroup {
-    width: 30%;
+    width: 40%;
     display: flex;
     flex-direction: column;
-    overflow-y: scroll;
 }
 
 .raisedAlert .trackedMetricCategory,
