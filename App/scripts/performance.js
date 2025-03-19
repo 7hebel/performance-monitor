@@ -56,7 +56,7 @@ function addMonitorHeader(monitorId, targetTitle) {
 }
 
 
-function buildDataPage(monitorId, targetTitle, productInfo, color, metrics) {
+function buildDataPage(monitorId, targetTitle, productInfo, color, metrics, _forTravelMode=false) {
     const monitorView = document.createElement("div");
     monitorView.className = "monitorView";
     monitorView.id = `view-${monitorId}`;
@@ -79,12 +79,16 @@ function buildDataPage(monitorId, targetTitle, productInfo, color, metrics) {
             const row = document.createElement("div");
             row.className = "metricsRow";
             metricsContaienr.appendChild(row);
-
+            
             metric.forEach(rowMetric => {
-                buildMetric(rowMetric.type, rowMetric.identificator, rowMetric.title, rowMetric.details, color, row);
+                if (_forTravelMode && !travelModePlaybackType && rowMetric.type == "chart") return;
+                let targetContainer = row;
+                if (_forTravelMode && !travelModePlaybackType && rowMetric.type == "keyvalue" && rowMetric.details.important) targetContainer = metricsContaienr
+                buildMetric(rowMetric.type, rowMetric.identificator, rowMetric.title, rowMetric.details, color, targetContainer, _forTravelMode);
             })
         } else {
-            buildMetric(metric.type, metric.identificator, metric.title, metric.details, color, metricsContaienr)
+            if (_forTravelMode && !travelModePlaybackType && metric.type == "chart") return;
+            buildMetric(metric.type, metric.identificator, metric.title, metric.details, color, metricsContaienr, _forTravelMode)
         }
 
     })
@@ -114,29 +118,34 @@ function switchMonitor(monitorId) {
 }
 
 
-function buildMetric(type, identificator, title, details, color, container) {
+function buildMetric(type, identificator, title, details, color, container, _travelModeChart=false) {
     if (type == "chart") {
         const chartMetric = document.createElement("div");
         chartMetric.className = "chartMetric";
         container.appendChild(chartMetric);
 
         const categoryId = identificator.split('.')[0];
-        const previewChartEl = document.getElementById(categoryId).querySelector(".chartPreview");
+        let previewChartEl = document.getElementById(categoryId).querySelector(".chartPreview");
+        if (_travelModeChart && !travelModePlaybackType) previewChartEl = null;
 
-        generateChartMetric(identificator, title, color, chartMetric, previewChartEl);
+        generateChartMetric(identificator, title, color, chartMetric, previewChartEl, _travelModeChart);
     }
 
     if (type == "keyvalue") {
-        const value = details.initValue ?? '-';
+        if (!REALTIME_MODE && !travelModePlaybackType && details.important) {
+            return buildMetric("chart", identificator, title, details, color, container, true);
+        }
+        
         const kvMetric = document.createElement("div");
         kvMetric.className = (details.important) ? "kvMetricImportant" : "kvMetricStandard";
+        container.appendChild(kvMetric);
+        
+        const value = details.initValue ?? '-';
         kvMetric.innerHTML = `
             <p class="metricTitle">${title}</p>
             <p class="metricValue" id="${identificator}">${value}</p>
         `;
         
-        container.appendChild(kvMetric);
-
         const trackedEl = document.getElementById(`tracker-${identificator}`);
         if (trackedEl) trackedEl.textContent = value;
     }

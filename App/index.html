@@ -76,6 +76,26 @@
                 <select class="performanceTimetravelSelect" id="timetravelHours">
                     <option value="0">Hour</option>
                 </select>
+                <div class="tabsSep" style="margin-inline: 8px;"></div>
+                <div class="radio-input-group">
+                    <div class="radio-inputs">
+                        <label class="radio">
+                            <input type="radio" checked name="radioTimetravelType" id="timetravelPlaybackType">
+                            <span class="name">
+                                <i class="fa-solid fa-play-circle"></i>
+                                Playback
+                            </span>
+                        </label>
+                        <label class="radio">
+                            <input type="radio" name="radioTimetravelType">
+                            <span class="name">
+                                <i class="fa-solid fa-chart-column"></i>
+                                Static
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                <div class="tabsSep" style="margin-inline: 8px;"></div>
                 <button id="timetravelRunBtn" onclick="queryTravelData()">
                     <i class="fa-solid fa-play"></i>
                     Travel

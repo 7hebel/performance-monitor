@@ -25,7 +25,7 @@ class MEM_Monitor(monitor.MonitorBase):
             metrics.MetricsRow(
                 metrics.KeyValueMetric(
                     identificator=Identificator("mem", "usage-value"),
-                    title="Usage",
+                    title="Usage (%)",
                     getter=lambda: f"{psutil.virtual_memory().percent}%",
                     important_item=True,
                     trackable=True,
@@ -33,7 +33,7 @@ class MEM_Monitor(monitor.MonitorBase):
                 ),
                 metrics.KeyValueMetric(
                     identificator=Identificator("mem", "used"),
-                    title="Used",
+                    title="Used (Gb)",
                     getter=lambda: self.readable_format(psutil.virtual_memory().used),
                     important_item=True,
                     trackable=True,
@@ -41,7 +41,7 @@ class MEM_Monitor(monitor.MonitorBase):
                 ),
                 metrics.KeyValueMetric(
                     identificator=Identificator("mem", "free"),
-                    title="Free",
+                    title="Free (Gb)",
                     getter=lambda: self.readable_format(psutil.virtual_memory().free),
                     important_item=True,
                     trackable=True,

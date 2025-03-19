@@ -26,7 +26,7 @@ class DISK_Monitor(monitor.MonitorBase):
             
             metrics.KeyValueMetric(
                 identificator=Identificator(f"disk-{self.mountpoint}", "usage-percent"),
-                title="Usage",
+                title="Usage (%)",
                 getter=lambda: f"{self.get_usage().percent}%",
                 important_item=True,
                 suppress_errors=True
@@ -35,14 +35,14 @@ class DISK_Monitor(monitor.MonitorBase):
             metrics.MetricsRow(
                 metrics.KeyValueMetric(
                     identificator=Identificator(f"disk-{self.mountpoint}", "total-size"),
-                    title="Capacity",
+                    title="Capacity (Gb)",
                     getter=metrics.StaticValueGetter(self.format_size(self.get_usage().total)),
                     important_item=False,
                     suppress_errors=True
                 ),
                 metrics.KeyValueMetric(
                     identificator=Identificator(f"disk-{self.mountpoint}", "used-size"),
-                    title="Used",
+                    title="Used (Gb)",
                     getter=lambda: self.format_size(self.get_usage().used),
                     important_item=False,
                     suppress_errors=True,
@@ -51,7 +51,7 @@ class DISK_Monitor(monitor.MonitorBase):
                 ),
                 metrics.KeyValueMetric(
                     identificator=Identificator(f"disk-{self.mountpoint}", "free-size"),
-                    title="Free",
+                    title="Free (Gb)",
                     getter=lambda: self.format_size(self.get_usage().free),
                     important_item=False,
                     suppress_errors=True,

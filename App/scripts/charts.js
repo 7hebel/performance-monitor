@@ -7,7 +7,7 @@ function __blankDataset() {
 }
 
 
-function generateChartMetric(identificator, title, color, metricEl, previewEl) {
+function generateChartMetric(identificator, title, color, metricEl, previewEl, _travelModeChart=false) {
     const metricOptions = {
         theme: { mode: 'dark' },
         title: {
@@ -17,7 +17,7 @@ function generateChartMetric(identificator, title, color, metricEl, previewEl) {
             floating: false,
         },
         subtitle: {
-            text: '60 seconds',
+            text: (!_travelModeChart) ? '60 seconds' : '',
             align: 'right',
             offsetY: 6,
             floating: false,
@@ -29,11 +29,11 @@ function generateChartMetric(identificator, title, color, metricEl, previewEl) {
             background: '#ffffff00',
             foreColor: 'var(--text-color)',
             toolbar: { show: false },
-            zoom: { enabled: false },
+            zoom: { enabled: (_travelModeChart && !travelModePlaybackType) },
             animations: { enabled: false }
         },
         dataLabels: { enabled: false },
-        series: [{ data: __blankDataset() }],
+        series: [{ name: 'Value', data: __blankDataset() }],
         fill: {
             type: "gradient",
             gradient: {
@@ -43,16 +43,17 @@ function generateChartMetric(identificator, title, color, metricEl, previewEl) {
             },
         },
         xaxis: {
+            type: "category",
             labels: { show: false },
             axisBorder: { show: false },
             axisTicks: { show: false },
-            crosshairs: { show: false },
+            crosshairs: { show: (_travelModeChart && !travelModePlaybackType) },
         },
-        tooltip: { enabled: false },
+        tooltip: { enabled: (_travelModeChart && !travelModePlaybackType) },
         yaxis: {
             labels: { offsetX: -4 },
             min: 0,
-            max: 100,
+            max: (_travelModeChart && !travelModePlaybackType) ? undefined : 100,
         },
         stroke: { width: 2 },
         colors: ['var(--accent-color)'],
@@ -123,12 +124,12 @@ function generateChartMetric(identificator, title, color, metricEl, previewEl) {
     }
 
     var metricChart = new ApexCharts(metricEl, metricOptions);
-    var previewChart = new ApexCharts(previewEl, previewOptions);
+    if (previewEl) var previewChart = new ApexCharts(previewEl, previewOptions);
 
     REGISTERED_CHARTS[identificator] = {
         dataset: __blankDataset(),
         metricChart: metricChart,
-        previewChart: previewChart
+        previewChart: previewChart ?? null
     };
 }
 
@@ -136,21 +137,21 @@ function initializeCharts() {
     Object.keys(REGISTERED_CHARTS).forEach(
         (identifier) => {
             REGISTERED_CHARTS[identifier].metricChart.render();
-            REGISTERED_CHARTS[identifier].previewChart.render();
+            REGISTERED_CHARTS[identifier].previewChart?.render();
         }
     );
 }
 
-function updateChart(identificator, value) {
+function updateChart(identificator, value, noShift=false) {
     const charts = REGISTERED_CHARTS[identificator];
     if (!charts || value == undefined) return;
 
     try {
-        charts.dataset.shift();
+        if (!noShift) charts.dataset.shift();
         charts.dataset.push(value);
         
         charts.metricChart.updateSeries([{data: charts.dataset}]);
-        charts.previewChart.updateSeries([{data: charts.dataset}]);
+        charts.previewChart?.updateSeries([{data: charts.dataset}]);
     } catch {
         console.warn(`Failed to update chart: ${identificator}. Removing from register...`);
         delete REGISTERED_CHARTS[identificator];

@@ -25,7 +25,7 @@ class CPU_Monitor(monitor.MonitorBase):
             metrics.MetricsRow(
                 metrics.KeyValueMetric(
                     identificator=Identificator("cpu", "usage-value"),
-                    title="Usage",
+                    title="Usage (%)",
                     getter=self.get_cpu_usage,
                     important_item=True,
                     trackable=True,

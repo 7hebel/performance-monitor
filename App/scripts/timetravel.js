@@ -4,6 +4,7 @@ let travelModeDumps = null;
 let travelModeMinute = null;
 let travelModeSecond = null;
 let travelModeTicker = null;
+let travelModePlaybackType = true;
 
 
 function switchTimeTravelMode() {
@@ -64,7 +65,6 @@ function hideTimeTravelPanel() {
     Array.from(datesContainer.children).forEach(opt => {
         if (opt.value != 0) opt.remove();
     })
-
 }
 
 
@@ -127,14 +127,53 @@ function queryTravelData() {
         .then(response => response.json())
         .then(clusterData => {
             clearPerformancePage(true);
+            travelModePlaybackType = document.getElementById("timetravelPlaybackType").checked;
+
             clusterData.composition.forEach(data => {
                 addMonitorHeader(data.categoryId, data.targetTitle);
-                buildDataPage(data.categoryId, data.targetTitle, data.productInfo, data.color, data.metrics);
+                buildDataPage(data.categoryId, data.targetTitle, data.productInfo, data.color, data.metrics, true);
             });
 
             travelModeCluster = cluster;
             travelModeDumps = clusterData.dumps;
-            travelModeTicker = setInterval(timetravelTick, 1000);
+
+            if (travelModePlaybackType) {
+                travelModeTicker = setInterval(timetravelTick, 1000);
+            } else {
+                Object.values(REGISTERED_CHARTS).forEach((chartdata) => {
+                    chartdata.dataset = [];
+                })
+
+                const hour = document.getElementById("timetravelCurrentHour").textContent;
+                Object.entries(travelModeDumps).forEach(([dumpNumber, dump]) => {
+                    if (!dump) return;
+                    
+                    let minutes = new Date(dumpNumber * 60 * 1000).getMinutes();
+                    if (minutes < 10) minutes = `0${minutes}`;
+                    const timeInfo = `${hour}:${minutes}`;
+
+                    Object.entries(dump).forEach(
+                        ([id, values]) => {
+                            const charts = REGISTERED_CHARTS[id];
+                            if (charts === undefined) return;
+
+                            for (second=0; second<60; second++) {  // Ensure each dump provides exactly 60 values no matter actual amount of data.
+                                const approxValueIndex = Math.min(Math.round((second / 60) * values.length), values.length - 1);
+                                const value = values[approxValueIndex];
+                                let secondInfo = second; 
+                                if (secondInfo < 10) secondInfo = `0${secondInfo}`;
+
+                                charts.dataset.push({x: timeInfo + ":" + secondInfo, y: value});
+                            }
+                        }
+                    )
+                    
+                })
+                
+                Object.values(REGISTERED_CHARTS).forEach((chartdata) => {
+                    chartdata.metricChart.updateSeries([{ data: chartdata.dataset }]);
+                })
+            }
 
         })
         .catch(error => {
