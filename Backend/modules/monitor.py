@@ -79,10 +79,4 @@ def export_monitor(monitor: MonitorBase) -> dict:
 
 
 def prepare_composition_data() -> list[dict]:
-    monitors = []
-    
-    for monitor in MONITORS_REGISTER:
-        monitor_data = export_monitor(monitor)
-        monitors.append(monitor_data)
-        
-    return monitors
+    return [export_monitor(m) for m in MONITORS_REGISTER]

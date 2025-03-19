@@ -102,7 +102,7 @@ async def create_tracker(tracker: CreateTrackerRequestModel, request: fastapi.Re
         logs.log("Tracking", "error", f"{request.client.host}:{request.client.port} attempted to create alert on: `{tracker.trackedId}` which is not registered as trackable.")
         return JSONResponse({"status": False, "err_msg": "Invalid metric. (May not exist anymore)"})
     
-    if tracker.trackedId in tracking.TRACKERS:
+    if tracker.trackedId in tracking.ACTIVE_TRACKERS:
         logs.log("Tracking", "error", f"{request.client.host}:{request.client.port} attempted to create alert on: `{tracker.trackedId}` which is already tracked by another tracker.")
         return JSONResponse({"status": False, "err_msg": "This metric is already tracked."})
     
@@ -117,7 +117,7 @@ async def create_tracker(tracker: CreateTrackerRequestModel, request: fastapi.Re
         stmt_op=tracker.stmtOp,
         stmt_value=tracker.limitValue,
     )
-    tracking.add_tracker(tracker_meta)
+    tracking.create_tracker(tracker_meta)
     
     return JSONResponse({"status": True, "err_msg": ""})
 
@@ -164,7 +164,7 @@ async def handle_ws_message(msg: dict) -> None:
         logs.log("Connection", "info", f"Client requested all processes data.")
 
         processes_packet = {}
-        for pid, process_observer in processes.ProcessObserver.observers.copy().items():
+        for pid, process_observer in processes.ProcessesObserver.observers.copy().items():
             process_data = process_observer.grab_processes_data()
             if process_data is not None:
                 processes_packet[pid] = asdict(process_data)
@@ -176,7 +176,7 @@ async def handle_ws_message(msg: dict) -> None:
         await ws_client.send_json(message)
 
     if event == EventType.KILL_PROC_REQUEST:
-        observer = processes.ProcessObserver.observers.get(data)
+        observer = processes.ProcessesObserver.observers.get(data)
         if observer is None:
             return logs.log("Connection", "error", f"Client requested process kill: {data} but no observer is observing this process.")
 
@@ -203,7 +203,7 @@ def updates_sender() -> None:
         
         # Prepare non-blank buffers packet.
         updates_packet = {}
-        for buffer in state.BUFFERS:
+        for buffer in state.REGISTERED_BUFFERS:
             buffer_content = buffer.flush()
             if buffer_content[buffer.buffer_name]:
                 updates_packet.update(buffer_content)

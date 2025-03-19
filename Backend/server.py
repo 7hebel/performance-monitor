@@ -1,4 +1,4 @@
-import threading
+import asyncio
 import json
 import os
 
@@ -16,13 +16,12 @@ if not os.path.exists(TRACKERS_PATH):
         json.dump({}, file)
 if not os.path.exists(ALERTS_HISTORY_PATH): open(ALERTS_HISTORY_PATH, "a+").close()
 
+if os.name == "nt":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 
 from modules import connection
-from modules import processes
-from modules import tracking
 import monitors
 
-threading.Thread(target=processes.processes_checker, daemon=True).start()
-
-connection.start_server()
-
+exit()
+# connection.start_server()

@@ -85,9 +85,9 @@ class TestState(unittest.TestCase):
         id1 = identificators.Identificator(identificators_category, "1")
         id2 = identificators.Identificator(identificators_category, "2")
         
-        buffer.insert_update(id1, 1)
-        buffer.insert_update(id2, 2)
-        buffer.insert_update(id2, 3)
+        buffer.report_change(id1, 1)
+        buffer.report_change(id2, 2)
+        buffer.report_change(id2, 3)
         
         self.assertEqual(len(buffer.updates), 2, "Two buffer updates were not saved in the .updates")
         
