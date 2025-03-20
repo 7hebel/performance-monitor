@@ -52,7 +52,7 @@ class TestMetricGetters(unittest.TestCase):
         self.assertEqual(state.perf_metrics_updates_buffer.updates[lazy_test_id.full()], lazy_value, f"lazy_static_getter evaluated value correctly, but reported invalid value")
 
     def test_async_reporting_getter(self) -> None:
-        dynatrace.ENABLE_LOGGING = False
+        dynatrace.ENABLE_INTEGRATION = False
         
         class _Counter:
             def __init__(self) -> None:

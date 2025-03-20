@@ -1,3 +1,5 @@
+from intergrations import dynatrace
+
 from modules import connection
 from modules import state
 from modules import logs
@@ -167,12 +169,18 @@ def clear_historical_alerts() -> None:
 
 def pipe_updates_to_trackers(updates: dict[str, str | int | float]) -> None:
     for metric_id, value in updates.items():
-        if metric_id not in TRACKABLE_METRICS or metric_id not in TRACKERS:
+        if metric_id not in TRACKABLE_METRICS:
             continue
         
         tracked_metric = TRACKABLE_METRICS.get(metric_id)
         if tracked_metric.trackable_formatter:
             value = tracked_metric.trackable_formatter(value)
+        
+        if tracked_metric.trackable:
+            dynatrace.send_metric_to_dynatrace(metric_id, value)
+        
+        if metric_id not in TRACKERS:
+            continue
         
         tracker = TRACKERS.get(metric_id)
         
@@ -200,7 +208,6 @@ def pipe_updates_to_trackers(updates: dict[str, str | int | float]) -> None:
                 tracker._values.clear()
                 
         tracker._last_update = int(time.time())
-            
+        
 
 state.perf_metrics_updates_buffer.attach_flush_listener(pipe_updates_to_trackers)
-
