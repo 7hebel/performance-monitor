@@ -6,7 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import fastapi
 import uvicorn
-import sys
 
 
 api = fastapi.FastAPI()
@@ -45,4 +44,4 @@ async def post_connect(data: req_schemas.ConnectToHostSchema, request: fastapi.R
     return JSONResponse(response)
     
 
-uvicorn.run(api, port=50507)
+uvicorn.run(api, host="0.0.0.0", port=50507)

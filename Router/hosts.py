@@ -23,11 +23,11 @@ class Host:
             if host_connection_resp.status_code == 403:
                 return {"status": False, "err_msg": "Invalid password."}
             
-            logs.log(f"Host: {self.host_name} returned invalid response: {host_connection_resp.status_code} ({host_connection_resp.text})")
+            logs.log("error", f"Host: {self.host_name} returned invalid response: {host_connection_resp.status_code} ({host_connection_resp.text})")
             return {"status": False, "err_msg": "Invalid host response."}
             
         except Exception as error:
-            logs.log(f"Connecting client to: {self.host_name} failed: {error}")
+            logs.log("error", f"Connecting client to: {self.host_name} failed: {error}")
             return {"status": False, "err_msg": "Internal error."}
     
     
