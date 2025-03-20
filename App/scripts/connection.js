@@ -1,5 +1,6 @@
 const HTTP_PROTO = "http";
-const API_ADDRESS = "localhost:50506";
+const ROUTER_ADDRESS = "localhost:50507";
+let API_ADDRESS = "";
 
 let socket = null;
 let reconnectTimeout = null;
@@ -65,7 +66,6 @@ function setupSocket() {
     socket.addEventListener('error', (error) => { onSocketFailure(); });
 }
 
-setupSocket();
 
 function _sendMessageToServer(evtype, data = {}) {
     const message = {
@@ -126,3 +126,35 @@ async function handleMessage(evtype, data) {
     
 }
 
+
+function requestConnection() {
+    const hostname = document.getElementById("connectionHostname").value;
+    const password = document.getElementById("connectionPassword").value;
+    
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            host_name: hostname,
+            password: password
+        })
+    };
+
+    fetch(HTTP_PROTO + "://" + ROUTER_ADDRESS + "/connect", options)
+        .then(response => response.json())
+        .then(result => {
+            if (result.status == false) {
+                document.getElementById("connectionError").textContent = result.err_msg;
+            } else {
+                API_ADDRESS = result.host;
+                document.getElementById("connectionPanel").setAttribute("active", "0");
+                setupSocket();
+            }
+        })
+        .catch(error => {
+            document.getElementById("connectionError").textContent = "Failed to connect to router.";
+            console.error('Error while connecting to the router.', error);
+        });
+}

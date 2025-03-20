@@ -6,3 +6,4 @@ wmi
 python-dotenv
 requests
 dmidecode
+bcrypt

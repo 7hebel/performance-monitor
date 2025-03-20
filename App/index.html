@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="styles/processes.css">
     <link rel="stylesheet" href="styles/loader.css">
     <link rel="stylesheet" href="styles/alerts.css">
+    <link rel="stylesheet" href="styles/connect.css">
     <link rel="stylesheet" href="styles/_responsive.css">
     
     <script src="scripts/charts.js"></script>
@@ -218,6 +219,25 @@
             </div>
         </div>
 
+    </div>
+
+    <div id="connectionPanel" active="1">
+        <div class="connectionForm">
+            <h2>
+                <i class="fa-solid fa-plug"></i>
+                Connect to data server.
+            </h2>
+            <label for="connectionHostname">
+                <i class="fa-solid fa-server"></i>Host name:
+            </label>
+            <input type="text" class="connectionFormInput" id="connectionHostname">
+            <label for="connectionPassword">
+                <i class="fa-solid fa-key"></i>Password:
+            </label>
+            <input type="password" class="connectionFormInput" id="connectionPassword">
+            <button onclick="requestConnection()">Connect</button>
+            <small id="connectionError"></small>
+        </div>
     </div>
 </body>
 </html>

@@ -1,5 +1,6 @@
 from modules import processes
 from modules import tracking
+from modules import schemas
 from modules import history
 from modules import monitor
 from modules import state
@@ -9,13 +10,20 @@ from starlette.websockets import WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from dataclasses import asdict
-from pydantic import BaseModel
 from enum import StrEnum
 import threading
+import requests
 import fastapi
 import asyncio
 import uvicorn
+import bcrypt
 import time
+import json
+
+
+CONFIG_PATH = "./config.json"
+with open(CONFIG_PATH, "r") as file:
+    CONFIG = json.load(file)
 
 
 server = fastapi.FastAPI()
@@ -47,6 +55,26 @@ class EventType(StrEnum):
     KILL_PROC_REQUEST = "proc-kill-request"
     REMOVE_TRACKER = "remove-tracker"
 
+
+# Server connection.
+
+@server.get("/")
+async def get_ping() -> JSONResponse:
+    return JSONResponse({"status": True})
+
+@server.post("/connect")
+async def post_conenct(data: schemas.ClientConnectSchema, request: fastapi.Request) -> JSONResponse:
+    hashed_password = CONFIG.get("password")
+    if hashed_password:
+        if not bcrypt.checkpw(data.password.encode(), hashed_password.encode()):
+            logs.log("Hosting", "warn", "Client provided invalid password via router connection.")
+            return JSONResponse({"status": False, "err_msg": "Invalid password"}, 403)
+
+    logs.log("Hosting", "info", "Accepting client's connection request from router.")
+    return JSONResponse({"status": True, "err_msg": ""}, 200)
+        
+    
+# Client connection.
 
 @server.get("/perf-history/points")
 async def get_performance_history_points(request: fastapi.Request) -> JSONResponse:
@@ -87,15 +115,8 @@ async def get_historical_alerts(request: fastapi.Request) -> JSONResponse:
     logs.log("Tracking", "info", f"Sent {len(historical_alerts)} historical alerts to: {request.client.host}:{request.client.port}")
     return JSONResponse(historical_alerts)
 
-
-class CreateTrackerRequestModel(BaseModel):
-    trackedId: str
-    stmtOp: str
-    limitValue: int | float
-    
-
 @server.post("/trackers/create")
-async def create_tracker(tracker: CreateTrackerRequestModel, request: fastapi.Request) -> JSONResponse:
+async def create_tracker(tracker: schemas.CreateTrackerRequestModel, request: fastapi.Request) -> JSONResponse:
     """ Create new tracker using sent data. Returns {'status': True/False, 'err_msg': '...'} based on validation status. """
     metric = tracking.TRACKABLE_METRICS.get(tracker.trackedId)
     if metric is None:
@@ -188,7 +209,7 @@ async def handle_ws_message(client: fastapi.WebSocket, msg: dict) -> None:
     
         case EventType.CLEAR_ALERTS_HISTORY:
             tracking.clear_historical_alerts()
-            logs.log("Tracking", "info", "Client: {client.client.host}:{client.client.port} cleared alerts history")
+            logs.log("Tracking", "info", F"Client: {client.client.host}:{client.client.port} cleared alerts history")
 
 
 def updates_sender() -> None:
@@ -222,6 +243,22 @@ def updates_sender() -> None:
 
 def start_server(port: int = 50506):
     threading.Thread(target=updates_sender, daemon=True).start()
+    
+    router_address = CONFIG.get("router_address")
+    try:
+        response = requests.post(router_address + "/register-host", json={
+            "host_name": CONFIG.get("hostname"),
+            "api_port": port,
+            "authorization": CONFIG.get("password", False) != False 
+        })
+        
+        if response.status_code != 200:
+            logs.log("Hosting", "error", f"Failed to host this server to router: `{router_address}` ({response.status_code}) {response.text}")
+        else:
+            logs.log("Hosting", "info", f"Registered this server to router: `{router_address}`")
+
+    except Exception as error:
+        logs.log("Hosting", "error", f"Failed to host this server to router: `{router_address}`: {error}")
     
     uvicorn.run(
         server,
