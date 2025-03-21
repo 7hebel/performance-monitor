@@ -40,21 +40,27 @@ async def host_waitroom(hostname: str, host_socket: fastapi.WebSocket) -> None:
     await host_socket.send_text("INIT-OK")
 
     while True:
-        data = await host_socket.receive_text()
-        content = json.loads(data)
-        
-        if content["event"] == "rejectBridge":
-            bridge_id = content["data"]
-            await host.ws_bridges[bridge_id]["client"].send_text("INIT-ERR")
-            logs.log("warn", f"Host: `{hostname}` actively rejected bridge request: {bridge_id}")
+        try:
+            data = await host_socket.receive_text()
+            content = json.loads(data)
+            
+            if content["event"] == "rejectBridge":
+                bridge_id = content["data"]
+                await host.ws_bridges[bridge_id]["client"].send_text("INIT-ERR")
+                logs.log("warn", f"Host: `{hostname}` actively rejected bridge request: {bridge_id}")
+    
+            if content["event"] == "assocResponse":
+                request_id = content["data"]["_requestId"]
+                response = content["data"]["response"]
+                awaiting_assoc_requests[request_id] = response
+                logs.log("info", f"Host: `{hostname}` fullfiled assocRequest: {request_id}")
 
-        if content["event"] == "assocResponse":
-            request_id = content["data"]["_requestId"]
-            response = content["data"]["response"]
-            awaiting_assoc_requests[request_id] = response
-            logs.log("info", f"Host: `{hostname}` fullfiled assocRequest: {request_id}")
-
-
+        except (RuntimeError, WebSocketDisconnect):
+            hosts.REGISTERED_HOSTS.pop(hostname, None)
+            logs.log("warn", f"Host: `{hostname}` disconnected abnormally.")
+            return
+            
+            
 @api.websocket("/ws-bridge-client/{hostname}")
 async def ws_bridge_client(client_socket: fastapi.WebSocket, hostname: str, password: str = None) -> None:
     await client_socket.accept()
@@ -69,12 +75,17 @@ async def ws_bridge_client(client_socket: fastapi.WebSocket, hostname: str, pass
     logs.log("info", f"Accepted client ws bridge request to: {hostname} (bridge: {bridge_id})")    
     await host.awaiting_ws_bridge(bridge_id, client_socket, password)
     await client_socket.send_text("INIT-OK")
-
+    
     while True:
-        message = await client_socket.receive_text()
-        host_socket = host.ws_bridges[bridge_id]["host"]
-        if host_socket is not None:
-            await host_socket.send_text(message)
+        try:
+            message = await client_socket.receive_text()
+            host_socket = host.ws_bridges[bridge_id]["host"]
+            if host_socket is not None:
+                await host_socket.send_text(message)
+        except (RuntimeError, WebSocketDisconnect) as error:
+            logs.log("error", f"WS-Bridge: `{bridge_id}` error: {error}")
+            host.ws_bridges.pop(bridge_id, None)
+            return
 
 
 @api.websocket("/ws-bridge-host/{hostname}/{bridge_id}")
@@ -93,10 +104,11 @@ async def ws_bridge_host(hostname: str, bridge_id: str, host_socket: fastapi.Web
         try:
             message = await host_socket.receive_text()
             await client_socket.send_text(message)
-        except WebSocketDisconnect:
-            logs.log("error", f"Host: {hostname} disconnected from bridge: {bridge_id}")
-            hosts.REGISTERED_HOSTS.pop(hostname, None)
-
+        except (RuntimeError, WebSocketDisconnect) as error:
+            logs.log("error", f"WS-Bridge: `{bridge_id}` error: {error}")
+            host.ws_bridges.pop(bridge_id, None)
+            return
+    
     
 @api.get("/keep-alive/{hostname}")
 async def keep_alive_host(hostname: str) -> JSONResponse:

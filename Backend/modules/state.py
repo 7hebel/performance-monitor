@@ -15,7 +15,7 @@ class UpdatesBuffer[KeyT, ValT]:
         self.buffer_name = buffer_name
         self.updates: dict[KeyT, ValT] = {}
         self._flush_pipe_fn: list[Callable] | None = []
-        BUFFERS.append(self)
+        UPDATES_BUFFERS.append(self)
 
     def insert_update(self, identifier: KeyT, value: ValT) -> None:
         self.updates[str(identifier)] = value
@@ -32,7 +32,7 @@ class UpdatesBuffer[KeyT, ValT]:
         return { self.buffer_name: updates }
 
 
-BUFFERS: list[UpdatesBuffer] = []
+UPDATES_BUFFERS: list[UpdatesBuffer] = []
 
 perf_metrics_updates_buffer = UpdatesBuffer["identificators.Identificator | str", "metrics.MetricValueT"]("perf-metrics")
 processes_stats_updates_buffer = UpdatesBuffer[str, dict]("proc-stats")

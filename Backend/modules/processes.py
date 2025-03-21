@@ -19,15 +19,15 @@ class ProcessData:
     status: bool = True
 
 
-class ProcessObserver:
-    observers: dict[str, "ProcessObserver"] = {}
+class ProcessesObserver:
+    observers: dict[str, "ProcessesObserver"] = {}
     
     def __init__(self, process: psutil.Process) -> None:
         self.name = process.name()
         self.processes: dict[int, psutil.Process] = {process.pid: process}
         self.__prev_data: ProcessData | None = None
         
-        ProcessObserver.observers[self.name] = self
+        ProcessesObserver.observers[self.name] = self
         
     def add_process(self, process: psutil.Process) -> None:
         self.processes[process.pid] = process
@@ -53,7 +53,7 @@ class ProcessObserver:
             
         if not self.processes:
             state.processes_stats_updates_buffer.insert_update(self.name, {"status": False})
-            ProcessObserver.observers.pop(self.name, None)
+            ProcessesObserver.observers.pop(self.name, None)
                 
         proc_count = len(self.processes)
         
@@ -84,7 +84,7 @@ class ProcessObserver:
             
         except (ProcessLookupError, psutil.Error):
             state.processes_stats_updates_buffer.insert_update(self.name, {"status": False})
-            ProcessObserver.observers.pop(self.name)
+            ProcessesObserver.observers.pop(self.name)
 
 
 SKIP_PROCESS_NAMES = ["svchost.exe", "System Idle Process", "System", ""]
@@ -99,9 +99,9 @@ def processes_checker() -> None:
                 if process is None or process.name() in SKIP_PROCESS_NAMES:
                     continue
                 
-                observer = ProcessObserver.observers.get(process.name())
+                observer = ProcessesObserver.observers.get(process.name())
                 if observer is None:
-                    ProcessObserver(process)
+                    ProcessesObserver(process)
                     
                 elif process.pid not in observer.processes:
                     observer.add_process(process)
@@ -111,6 +111,6 @@ def processes_checker() -> None:
         
         time.sleep(2)
         
-        for observer in ProcessObserver.observers.copy().values():
+        for observer in ProcessesObserver.observers.copy().values():
             observer.report_updates()
             
