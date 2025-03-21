@@ -91,7 +91,8 @@ function createNewTracker() {
         })
     };
     
-    fetch(HTTP_PROTO + "://" + API_ADDRESS + "/trackers/create", options)
+    
+    fetch(HTTP_PROTO + "://" + ROUTER_ADDRESS + "/api/" + HOSTNAME + "/trackers/create", options)
         .then(response => response.json())
         .then(result => {
             if (!result.status) {

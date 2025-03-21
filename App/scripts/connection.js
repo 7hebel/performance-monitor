@@ -1,6 +1,6 @@
 const HTTP_PROTO = "http";
-const ROUTER_ADDRESS = "space7.smallhost.pl:50507";
-// const ROUTER_ADDRESS = "localhost:50507";
+// const ROUTER_ADDRESS = "space7.smallhost.pl:50507";
+const ROUTER_ADDRESS = "localhost:50507";
 let HOSTNAME = null;
 let API_ADDRESS = "";
 

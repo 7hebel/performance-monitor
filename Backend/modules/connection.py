@@ -1,21 +1,16 @@
 from modules import processes
 from modules import tracking
-from modules import schemas
 from modules import history
 from modules import monitor
 from modules import state
 from modules import logs
 
 from starlette.websockets import WebSocketDisconnect
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from dataclasses import asdict
 from enum import StrEnum
 import websocket
 import threading
 import requests
-import fastapi
-import uvicorn
 import bcrypt
 import time
 import json
@@ -26,17 +21,8 @@ with open("./config.json", "r") as file:
     CONFIG = json.load(file)
 
 router_address = CONFIG.get("router_address")
-
-server = fastapi.FastAPI()
-server.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 ws_clients: list[websocket.WebSocket] = []
+waitroom_ws: websocket.WebSocket | None = None
 
 
 class EventType(StrEnum):
@@ -56,82 +42,8 @@ class EventType(StrEnum):
     KILL_PROC_REQUEST = "proc-kill-request"
     REMOVE_TRACKER = "remove-tracker"
 
-
-@server.get("/")
-async def get_ping() -> JSONResponse:
-    return JSONResponse({"status": True})
-        
     
-# Client connection.
-
-@server.get("/perf-history/points")
-async def get_performance_history_points(request: fastapi.Request) -> JSONResponse:
-    """ Return saved history metadata groupped by date. """
-    dated_clusters = history.prepare_dated_clusters()
-    logs.log("History", "info", f"Prepared and sent history points to: {request.client.host}:{request.client.port}")
-    return JSONResponse(dated_clusters)
-
-@server.get("/perf-history/query-cluster/{cluster}")
-async def query_performance_history_cluster(cluster: int, request: fastapi.Request) -> JSONResponse:
-    """ Returns cluster's content containing historical data from a hour. """
-    cluster_data = history.get_cluster(cluster)
-    if cluster_data is None:
-        logs.log("History", "error", f"Cluster: `{cluster}` query failed for: {request.client.host}:{request.client.port} (not found)")
-        return JSONResponse({}, 404)
-
-    logs.log("History", "info", f"Sent cluster: `{cluster}` to: {request.client.host}:{request.client.port}")
-    return JSONResponse(cluster_data)
-
-@server.get("/trackers/get-trackable")
-async def get_trackable_metrics(request: fastapi.Request) -> JSONResponse:
-    """ Returns all trackable metrics' names and ids groupped by category. """
-    trackable = tracking.prepare_trackable_metrics_per_category()
-    logs.log("Tracking", "info", f"Sent trackable metrics to: {request.client.host}:{request.client.port}")
-    return JSONResponse(trackable)
-
-@server.get("/trackers/get-active-trackers")
-async def get_active_trackers(request: fastapi.Request) -> JSONResponse:
-    """ Returns all active trackers' brief information. """
-    active_trackers = tracking.prepare_active_trackers()
-    logs.log("Tracking", "info", f"Sent {len(active_trackers)} active trackers data to: {request.client.host}:{request.client.port}")
-    return JSONResponse(active_trackers)
-
-@server.get("/trackers/get-historical-alerts")
-async def get_historical_alerts(request: fastapi.Request) -> JSONResponse:
-    """ Returns all previously recorded alerts. """
-    historical_alerts = tracking.load_historical_alerts()
-    logs.log("Tracking", "info", f"Sent {len(historical_alerts)} historical alerts to: {request.client.host}:{request.client.port}")
-    return JSONResponse(historical_alerts)
-
-@server.post("/trackers/create")
-async def create_tracker(tracker: schemas.CreateTrackerRequestModel, request: fastapi.Request) -> JSONResponse:
-    """ Create new tracker using sent data. Returns {'status': True/False, 'err_msg': '...'} based on validation status. """
-    metric = tracking.TRACKABLE_METRICS.get(tracker.trackedId)
-    if metric is None:
-        logs.log("Tracking", "error", f"{request.client.host}:{request.client.port} attempted to create alert on: `{tracker.trackedId}` which is not registered as trackable.")
-        return JSONResponse({"status": False, "err_msg": "Invalid metric. (May not exist anymore)"})
-    
-    if tracker.trackedId in tracking.TRACKERS:
-        logs.log("Tracking", "error", f"{request.client.host}:{request.client.port} attempted to create alert on: `{tracker.trackedId}` which is already tracked by another tracker.")
-        return JSONResponse({"status": False, "err_msg": "This metric is already tracked."})
-    
-    if tracker.stmtOp not in "<>":
-        logs.log("Tracking", "error", f"{request.client.host}:{request.client.port} attempted to create alert on: `{tracker.trackedId}` but provided invalid statement op: `{tracker.stmtOp}`.")
-        return JSONResponse({"status": False, "err_msg": "Invalid statement operator (</>)."})
-    
-    tracker_meta = tracking.TrackerMeta(
-        tracked_id=metric.identificator.full(),
-        tracked_name=metric.title,
-        target_category=metric.identificator.category,
-        stmt_op=tracker.stmtOp,
-        stmt_value=tracker.limitValue,
-    )
-    tracking.add_tracker(tracker_meta)
-    
-    return JSONResponse({"status": True, "err_msg": ""})
-
-
-def handle_ws_message(client: websocket.WebSocket, msg: dict) -> None:
+def handle_client_ws_message(client: websocket.WebSocket, msg: dict) -> None:
     """ Handle messages coming from WebSocket's client. """
     event = msg.get("event")
     data = msg.get("data")
@@ -203,7 +115,7 @@ def updates_sender() -> None:
             for ws_client in ws_clients:
                 ws_client.send_text(json.dumps(message))
         except (RuntimeError, WebSocketDisconnect):
-            logs.log("Connection", "warn", f"Disconnected from: {ws_client.client.host}:{ws_client.client.port} (write error)")
+            logs.log("Connection", "warn", f"Disconnected from client (write error)")
             ws_clients.remove(ws_client)
 
 
@@ -227,7 +139,7 @@ def handle_bridge_connection(bridge_id: str) -> None:
     
     while True:
         client_message = bridge_ws.recv()
-        handle_ws_message(bridge_ws, json.loads(client_message))
+        handle_client_ws_message(bridge_ws, json.loads(client_message))
         
     
 # @server.post("/connect")
@@ -243,8 +155,10 @@ def handle_bridge_connection(bridge_id: str) -> None:
 
 
 def connect_to_router() -> None:
+    global waitroom_ws
+    
     try:
-        waitroom_ws = websocket.create_connection("ws://" + router_address + f"/ws-host-waitroom/{CONFIG["hostname"]}")
+        waitroom_ws = websocket.create_connection("ws://" + router_address + f"/ws-host/{CONFIG["hostname"]}")
         connection_resp = waitroom_ws.recv()
         if connection_resp != "INIT-OK":
             logs.log("Hosting", "error", f"Failed to register this host to router: {router_address} (received: `{connection_resp}`)")
@@ -267,19 +181,86 @@ def connect_to_router() -> None:
             sys.exit(1)
 
 
+def send_assoc_request_response(request_id: str, data: dict) -> None:
+    waitroom_ws.send_text(json.dumps({
+        "event": "assocResponse",
+        "data": {
+            "response": data,
+            "_requestId": request_id
+        }
+    }))
+    
+
 def handle_router_message(event: str, data: dict | str) -> None:
     if event == "awaitingBridgeWS":
         bridge_id = data
         logs.log("Hosting", "info", f"Initalizing awaiting bridge connection: {bridge_id}")
         threading.Thread(target=handle_bridge_connection, args=(bridge_id,), daemon=True).start()
 
+    if event == "assocRequest":
+        request_id = data["_requestId"]
+        function = data["function"]
 
-def start_server(port: int = 50506):
+        if function == "perf-history/points":
+            send_assoc_request_response(
+                request_id, history.prepare_dated_clusters()
+            )
+
+        if function == "trackers/get-trackable":
+            send_assoc_request_response(
+                request_id, tracking.prepare_trackable_metrics_per_category()
+            )
+
+        if function == "trackers/get-active-trackers":
+            send_assoc_request_response(
+                request_id, tracking.prepare_active_trackers()
+            )
+            
+        if function == "trackers/get-historical-alerts":
+            send_assoc_request_response(
+                request_id, tracking.load_historical_alerts()
+            )
+            
+        if function.startswith("perf-history/query-cluster/"):
+            cluster_number = int(function.split("/")[-1])
+            cluster_data = history.get_cluster(cluster_number)
+            send_assoc_request_response(request_id, cluster_data)
+            
+        if function.startswith("trackers/create"):
+            data = data["payload"]
+            metric = tracking.TRACKABLE_METRICS.get(data["trackedId"])
+            if metric is None:
+                logs.log("Tracking", "error", f"Client attempted to create alert on: `{data["trackedId"]}` which is not registered as trackable.")
+                send_assoc_request_response(
+                    request_id, {"status": False, "err_msg": "Invalid metric. (May not exist anymore)"}
+                )
+            
+            if data["trackedId"] in tracking.TRACKERS:
+                logs.log("Tracking", "error", f"Client attempted to create alert on: `{data["trackedId"]}` which is already tracked by another tracker.")
+                send_assoc_request_response(
+                    request_id, {"status": False, "err_msg": "This metric is already tracked."}
+                )
+            
+            if data["stmtOp"] not in "<>":
+                logs.log("Tracking", "error", f"Client attempted to create alert on: `{data["trackedId"]}` but provided invalid statement op: `{data["stmtOp"]}`.")
+                send_assoc_request_response(
+                    request_id, {"status": False, "err_msg": "Invalid statement operator (</>)."}
+                )
+            
+            tracker_meta = tracking.TrackerMeta(
+                tracked_id=metric.identificator.full(),
+                tracked_name=metric.title,
+                target_category=metric.identificator.category,
+                stmt_op=data["stmtOp"],
+                stmt_value=data["limitValue"],
+            )
+            tracking.add_tracker(tracker_meta)
+            
+            send_assoc_request_response(
+                request_id, {"status": True, "err_msg": ""}
+            )
+
+
+def start_server():
     threading.Thread(target=updates_sender, daemon=True).start()
-    threading.Thread(target=connect_to_router, daemon=True).start()
-    uvicorn.run(
-        server,
-        host="0.0.0.0",
-        port=port,
-        log_level="critical",
-    )
+    connect_to_router()

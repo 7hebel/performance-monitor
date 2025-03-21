@@ -4,10 +4,11 @@ import logs
 from starlette.websockets import WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import requests
 import fastapi
 import uvicorn
+import asyncio
 import uuid
+import json
 
 
 api = fastapi.FastAPI()
@@ -19,7 +20,10 @@ api.add_middleware(
     allow_headers=["*"],
 )
 
-@api.websocket("/ws-host-waitroom/{hostname}")
+awaiting_assoc_requests: dict[str, dict] = {}
+
+
+@api.websocket("/ws-host/{hostname}")
 async def host_waitroom(hostname: str, host_socket: fastapi.WebSocket) -> None:
     await host_socket.accept()
     logs.log("info", f"Accepted WS host waitroom connection from host: `{hostname}`")
@@ -34,7 +38,16 @@ async def host_waitroom(hostname: str, host_socket: fastapi.WebSocket) -> None:
     logs.log("info", f"Registered host: `{hostname}` ({host_socket.client.host}:{host_socket.client.port})")
 
     await host_socket.send_text("INIT-OK")
-    await host_socket.receive()
+
+    while True:
+        data = await host_socket.receive_text()
+        content = json.loads(data)
+        
+        if content["event"] == "assocResponse":
+            request_id = content["data"]["_requestId"]
+            response = content["data"]["response"]
+            awaiting_assoc_requests[request_id] = response
+            logs.log("info", f"Host: `{hostname}` fullfiled assocRequest: {request_id}")
 
 
 @api.websocket("/ws-bridge-client/{hostname}")
@@ -96,16 +109,54 @@ async def bridge_get_request(hostname: str, path: str) -> JSONResponse:
         logs.log("warn", f"Received bridge GET request: {hostname}/{path} for invalid host.")
         return JSONResponse({"status": False, "err_msg": f"Host: {hostname} not found."})
     
-    print(path)
+    request_id = uuid.uuid4().hex
+    awaiting_assoc_requests[request_id] = None
     
-    host_adress = f"http://{host.waitroom_ws.client.host}:50506/"
-    if host.waitroom_ws.client.host == "::1":
-        host_adress = f"http://localhost:50506/"
-        
-    host_resp = requests.get(host_adress + path).json()
-    return JSONResponse(host_resp)
+    await host.waitroom_ws.send_json({
+        "event": "assocRequest",
+        "data": {
+            "function": path,
+            "_requestId": request_id
+        }
+    }) 
+    
+    logs.log("info", f"Sent assocReqeust to exec function `{path}` to: `{hostname}`. Awaitng response: {request_id} ...")
+    
+    while awaiting_assoc_requests[request_id] is None:
+        await asyncio.sleep(0.1)
+    
+    response = awaiting_assoc_requests[request_id]
+    return JSONResponse(response)
     
     
+@api.post("/api/{hostname}/{path:path}")  
+async def bridge_post_request(hostname: str, path: str, request: fastapi.Request) -> JSONResponse:
+    payload = await request.json()
+    print(payload)
+
+    host = hosts.REGISTERED_HOSTS.get(hostname)
+    if host is None:
+        logs.log("warn", f"Received bridge POST request: {hostname}/{path} for invalid host.")
+        return JSONResponse({"status": False, "err_msg": f"Host: {hostname} not found."})
+    
+    request_id = uuid.uuid4().hex
+    awaiting_assoc_requests[request_id] = None
+    
+    await host.waitroom_ws.send_json({
+        "event": "assocRequest",
+        "data": {
+            "function": path,
+            "payload": payload,
+            "_requestId": request_id
+        }
+    }) 
+    
+    logs.log("info", f"Sent assocReqeust to exec function `{path}` to: `{hostname}`. Awaitng response: {request_id} ...")
+    
+    while awaiting_assoc_requests[request_id] is None:
+        await asyncio.sleep(0.1)
+    
+    response = awaiting_assoc_requests[request_id]
+    return JSONResponse(response)
 
 uvicorn.run(api, host="0.0.0.0", port=50507)
-# uvicorn.run(api, host="localhost", port=50507)
