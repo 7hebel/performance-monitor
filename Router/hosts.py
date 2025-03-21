@@ -16,10 +16,13 @@ class Host:
         self.ws_bridges: dict[str, dict[str, WebSocket]] = {}  # {bridgeId: {"client": WS, "host": WS}}
 
     
-    async def awaiting_ws_bridge(self, bridge_id: str, client_socket: WebSocket) -> None:
+    async def awaiting_ws_bridge(self, bridge_id: str, client_socket: WebSocket, password: str) -> None:
         await self.waitroom_ws.send_json({
             "event": "awaitingBridgeWS",
-            "data": bridge_id
+            "data": {
+                "bridgeId": bridge_id,
+                "password": password
+            }
         })
         self.ws_bridges[bridge_id] = {"client": client_socket, "host": None}
         logs.log("info", f"Informed host: {self.hostname} about awaiting WS Bridge: {bridge_id}")

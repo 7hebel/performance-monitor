@@ -6,11 +6,13 @@ from modules import state
 from modules import logs
 
 from starlette.websockets import WebSocketDisconnect
+from urllib.parse import unquote
 from dataclasses import asdict
 from enum import StrEnum
 import websocket
 import threading
 import requests
+import base64
 import bcrypt
 import time
 import json
@@ -119,8 +121,6 @@ def updates_sender() -> None:
             ws_clients.remove(ws_client)
 
 
-# Router.
-
 def _keepalive_sender():
     while True:
         time.sleep(60)
@@ -140,18 +140,6 @@ def handle_bridge_connection(bridge_id: str) -> None:
     while True:
         client_message = bridge_ws.recv()
         handle_client_ws_message(bridge_ws, json.loads(client_message))
-        
-    
-# @server.post("/connect")
-# async def post_conenct(data: schemas.ClientConnectSchema, request: fastapi.Request) -> JSONResponse:
-#     hashed_password = CONFIG.get("password")
-#     if hashed_password:
-#         if not bcrypt.checkpw(data.password.encode(), hashed_password.encode()):
-#             logs.log("Hosting", "warn", "Client provided invalid password via router connection.")
-#             return JSONResponse({"status": False, "err_msg": "Invalid password"}, 403)
-
-#     logs.log("Hosting", "info", "Accepting client's connection request from router.")
-#     return JSONResponse({"status": True, "err_msg": ""}, 200)
 
 
 def connect_to_router() -> None:
@@ -193,7 +181,19 @@ def send_assoc_request_response(request_id: str, data: dict) -> None:
 
 def handle_router_message(event: str, data: dict | str) -> None:
     if event == "awaitingBridgeWS":
-        bridge_id = data
+        bridge_id = data["bridgeId"]
+        password = base64.b64decode(unquote(data["password"]))
+
+        hashed_password = CONFIG.get("password")
+        if hashed_password:
+            if not bcrypt.checkpw(password, hashed_password.encode()):
+                logs.log("Hosting", "warn", "Client provided invalid password via router connection.")
+                waitroom_ws.send_text(json.dumps({
+                    "event": "rejectBridge",
+                    "data": bridge_id,
+                }))
+                return
+        
         logs.log("Hosting", "info", f"Initalizing awaiting bridge connection: {bridge_id}")
         threading.Thread(target=handle_bridge_connection, args=(bridge_id,), daemon=True).start()
 

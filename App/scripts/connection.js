@@ -31,44 +31,6 @@ function setConnectionStatus(status) {
     statusEl.setAttribute("status", (status) ? "1" : "0");
 }
 
-function onSocketFailure() {
-    if (reconnectTimeout) return;
-    if (gotPerfComposition) window.location.reload();
-    
-    setConnectionStatus(false);
-    reconnectTimeout = setTimeout(() => {
-        reconnectTimeout = null;
-        setupSocket();
-    }, 1000);
-}
-
-function setupSocket() {
-    socket = new WebSocket(`ws://${API_ADDRESS}/ws-stream`);
-
-    socket.addEventListener('open', (event) => {
-        console.log("Connection opened");
-        _sendMessageToServer(EV_REQUEST_COMPOSITION);
-        _sendMessageToServer(EV_REQUEST_ALL_PROCESSES);
-        fetchHistoricalAlerts();
-        fetchTrackableMetrics();
-        fetchActiveTrackers();
-    });
-    
-    socket.addEventListener('message', (event) => {
-        setConnectionStatus(true);
-        const message = JSON.parse(event.data);
-        handleMessage(message.event, message.data);
-    });
-    
-    socket.addEventListener('close', (event) => {
-        if (event.code !== 1006) console.log('Connection closed:', event);
-        onSocketFailure();
-    });
-
-    socket.addEventListener('error', (error) => { onSocketFailure(); });
-}
-
-
 function _sendMessageToServer(evtype, data = {}) {
     const message = {
         event: evtype,
@@ -132,8 +94,8 @@ async function handleMessage(evtype, data) {
 function requestConnection() {
     const hostname = document.getElementById("connectionHostname").value;
     const password = document.getElementById("connectionPassword").value;
-
-    socket = new WebSocket(`ws://${ROUTER_ADDRESS}/ws-bridge-client/${hostname}`);
+    
+    socket = new WebSocket(`ws://${ROUTER_ADDRESS}/ws-bridge-client/${hostname}?password=${window.btoa(password)}`);
 
     socket.addEventListener('open', (event) => {
         console.log("Connection opened");
@@ -164,7 +126,7 @@ function requestConnection() {
 
     socket.addEventListener('close', (event) => {
         console.log('Connection closed:', event);
-        // onSocketFailure();
+        window.location.reload();
     });
 
     socket.addEventListener('error', (error) => { console.error(error) });

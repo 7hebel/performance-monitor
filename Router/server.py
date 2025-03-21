@@ -43,6 +43,11 @@ async def host_waitroom(hostname: str, host_socket: fastapi.WebSocket) -> None:
         data = await host_socket.receive_text()
         content = json.loads(data)
         
+        if content["event"] == "rejectBridge":
+            bridge_id = content["data"]
+            await host.ws_bridges[bridge_id]["client"].send_text("INIT-ERR")
+            logs.log("warn", f"Host: `{hostname}` actively rejected bridge request: {bridge_id}")
+
         if content["event"] == "assocResponse":
             request_id = content["data"]["_requestId"]
             response = content["data"]["response"]
@@ -51,7 +56,7 @@ async def host_waitroom(hostname: str, host_socket: fastapi.WebSocket) -> None:
 
 
 @api.websocket("/ws-bridge-client/{hostname}")
-async def ws_bridge_client(hostname: str, client_socket: fastapi.WebSocket) -> None:
+async def ws_bridge_client(client_socket: fastapi.WebSocket, hostname: str, password: str = None) -> None:
     await client_socket.accept()
         
     host = hosts.REGISTERED_HOSTS.get(hostname)
@@ -62,7 +67,7 @@ async def ws_bridge_client(hostname: str, client_socket: fastapi.WebSocket) -> N
 
     bridge_id = uuid.uuid4().hex
     logs.log("info", f"Accepted client ws bridge request to: {hostname} (bridge: {bridge_id})")    
-    await host.awaiting_ws_bridge(bridge_id, client_socket)
+    await host.awaiting_ws_bridge(bridge_id, client_socket, password)
     await client_socket.send_text("INIT-OK")
 
     while True:
@@ -158,5 +163,6 @@ async def bridge_post_request(hostname: str, path: str, request: fastapi.Request
     
     response = awaiting_assoc_requests[request_id]
     return JSONResponse(response)
+
 
 uvicorn.run(api, host="0.0.0.0", port=50507)
