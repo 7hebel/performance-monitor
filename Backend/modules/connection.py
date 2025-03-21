@@ -192,6 +192,7 @@ def connect_to_bridge_connection(bridge_id: str) -> None:
             ws_clients.remove(bridge_ws)
             return
     
+    
 def handle_client_ws_message(client: websocket.WebSocket, msg: dict) -> None:
     event = msg.get("event")
     data = msg.get("data")

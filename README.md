@@ -7,9 +7,10 @@ Computer's performance monitoring app similar to the Window's Task Manager.
 ### Getting started.
 
 Environmental variables are stored in `.env` file. It is not present in the repository.
+Used for integration with Dynatrace.
 ```env
 DT-EnvId=aaa00000
-DT-Logs=dt0000.AAAAAAAAAAAAAAAAAAAAAAAA.BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+DT-API=dt0000.AAAAAAAAAAAAAAAAAAAAAAAA.BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
 ```
 
 Installing python's dependencies.
@@ -54,12 +55,7 @@ There are two types of getters:
 
 ### Connection.
 
-1. Backend starts uvicorn WebSocket server on `50505` port.
-2. Frontend connects to it.
-3. The `initial composition` message is sent to client containing structure of metrics and static values.
-4. Server sends a `update packet` containing all changed values every second.
-5. If user changes page, a `change monitor` information is sent to the server, so it resume tracking assets on this new page and pause checking from the old page.
-6. In case of Frontend's socket error, server disconnects from it and awaits new connection.
+<img src="./assets/connection.png" alt="Connection" />
 
 ### Storing historical performance data.
 
