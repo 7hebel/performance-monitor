@@ -11,20 +11,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from dataclasses import asdict
 from enum import StrEnum
+import websocket
 import threading
 import requests
 import fastapi
-import asyncio
 import uvicorn
 import bcrypt
 import time
 import json
+import sys
 
 
-CONFIG_PATH = "./config.json"
-with open(CONFIG_PATH, "r") as file:
+with open("./config.json", "r") as file:
     CONFIG = json.load(file)
 
+router_address = CONFIG.get("router_address")
 
 server = fastapi.FastAPI()
 server.add_middleware(
@@ -35,7 +36,7 @@ server.add_middleware(
     allow_headers=["*"],
 )
 
-ws_clients: list[fastapi.WebSocket] = []
+ws_clients: list[websocket.WebSocket] = []
 
 
 class EventType(StrEnum):
@@ -56,22 +57,9 @@ class EventType(StrEnum):
     REMOVE_TRACKER = "remove-tracker"
 
 
-# Server connection.
-
 @server.get("/")
 async def get_ping() -> JSONResponse:
     return JSONResponse({"status": True})
-
-@server.post("/connect")
-async def post_conenct(data: schemas.ClientConnectSchema, request: fastapi.Request) -> JSONResponse:
-    hashed_password = CONFIG.get("password")
-    if hashed_password:
-        if not bcrypt.checkpw(data.password.encode(), hashed_password.encode()):
-            logs.log("Hosting", "warn", "Client provided invalid password via router connection.")
-            return JSONResponse({"status": False, "err_msg": "Invalid password"}, 403)
-
-    logs.log("Hosting", "info", "Accepting client's connection request from router.")
-    return JSONResponse({"status": True, "err_msg": ""}, 200)
         
     
 # Client connection.
@@ -143,45 +131,23 @@ async def create_tracker(tracker: schemas.CreateTrackerRequestModel, request: fa
     return JSONResponse({"status": True, "err_msg": ""})
 
 
-@server.websocket("/ws-stream")
-async def handle_ws_connection(websocket: fastapi.WebSocket):
-    global ws_clients
-
-    # Accept incoming connection and finish handshake.
-    await websocket.accept()
-    await websocket.send_json({})
-    ws_clients.append(websocket)
-    logs.log("Connection", "info", f"Accepted incoming WS connection from: {websocket.client.host}:{websocket.client.port} (total clients: {len(ws_clients)})")
-
-    # Listen to incoming WS message and delegate them to handler. Detect client's disconnection.
-    while True:
-        try:
-            data = await websocket.receive_json()
-            await handle_ws_message(websocket, data)
-
-        except fastapi.WebSocketDisconnect:
-            logs.log("Connection", "warn", f"Disconnected WS connection with: {websocket.client.host}:{websocket.client.port} (reading error)")
-            await websocket.close()
-            ws_clients.remove(websocket)
-
-
-async def handle_ws_message(client: fastapi.WebSocket, msg: dict) -> None:
+def handle_ws_message(client: websocket.WebSocket, msg: dict) -> None:
     """ Handle messages coming from WebSocket's client. """
     event = msg.get("event")
     data = msg.get("data")
 
     match event:
         case EventType.PERF_COMPOSITION_REQUEST:
-            logs.log("Connection", "info", f"Client: {client.client.host}:{client.client.port} requested performance composition data.")
+            logs.log("Connection", "info", f"Client requested performance composition data.")
     
             message = {
                 "event": EventType.PERF_COMPOSITION_DATA,
                 "data": monitor.prepare_composition_data()
             }
-            await client.send_json(message)
+            client.send_text(json.dumps(message))
 
         case EventType.ALL_PROCESSES_REQUEST:
-            logs.log("Connection", "info", f"Client: {client.client.host}:{client.client.port} requested all processes data.")
+            logs.log("Connection", "info", f"Client requested all processes data.")
     
             processes_packet = {}
             for pid, process_observer in processes.ProcessObserver.observers.copy().items():
@@ -193,27 +159,27 @@ async def handle_ws_message(client: fastapi.WebSocket, msg: dict) -> None:
                 "event": EventType.PROC_LIST_PACKET,
                 "data": processes_packet
             }
-            await client.send_json(message)
+            client.send_text(json.dumps(message))
 
         case EventType.KILL_PROC_REQUEST:
             observer = processes.ProcessObserver.observers.get(data)
             if observer is None:
-                return logs.log("Connection", "error", f"Client: {client.client.host}:{client.client.port} requested process kill: {data} but no observer is observing this process.")
+                return logs.log("Connection", "error", f"Client requested process kill: {data} but no observer is observing this process.")
     
-            logs.log("Connection", "info", f"Client: {client.client.host}:{client.client.port} requested process kill: {data}")
+            logs.log("Connection", "info", f"Client requested process kill: {data}")
             observer.try_kill()
         
         case EventType.REMOVE_TRACKER:
             tracking.remove_tracker(data)
-            logs.log("Tracking", "warn", f"Client: {client.client.host}:{client.client.port} removed tracker: {data}")
+            logs.log("Tracking", "warn", f"Client removed tracker: {data}")
     
         case EventType.CLEAR_ALERTS_HISTORY:
             tracking.clear_historical_alerts()
-            logs.log("Tracking", "info", F"Client: {client.client.host}:{client.client.port} cleared alerts history")
+            logs.log("Tracking", "info", F"Client cleared alerts history")
 
 
 def updates_sender() -> None:
-    """ Sent awaiting updates packets from all buffers. """
+    """ Sent ng updates packets from all buffers. """
     global ws_clients
 
     while True:
@@ -235,34 +201,85 @@ def updates_sender() -> None:
 
         try:
             for ws_client in ws_clients:
-                asyncio.run(ws_client.send_json(message))
+                ws_client.send_text(json.dumps(message))
         except (RuntimeError, WebSocketDisconnect):
             logs.log("Connection", "warn", f"Disconnected from: {ws_client.client.host}:{ws_client.client.port} (write error)")
             ws_clients.remove(ws_client)
 
 
+# Router.
+
+def _keepalive_sender():
+    while True:
+        time.sleep(60)
+        requests.get(f"http://{router_address}/keep-alive/{CONFIG["hostname"]}")
+
+
+def handle_bridge_connection(bridge_id: str) -> None:
+    bridge_ws = websocket.create_connection("ws://" + router_address + "/ws-bridge-host/" + CONFIG["hostname"] + "/" + bridge_id)
+    connection_resp = bridge_ws.recv()
+    if connection_resp != "INIT-OK":
+        logs.log("Hosting", "error", f"Failed to create bridge connection: {bridge_id}")
+        return
+
+    ws_clients.append(bridge_ws)
+    logs.log("Hosting", "info", f"Initialized bridge WS connection: {bridge_id}")
+    
+    while True:
+        client_message = bridge_ws.recv()
+        handle_ws_message(bridge_ws, json.loads(client_message))
+        
+    
+# @server.post("/connect")
+# async def post_conenct(data: schemas.ClientConnectSchema, request: fastapi.Request) -> JSONResponse:
+#     hashed_password = CONFIG.get("password")
+#     if hashed_password:
+#         if not bcrypt.checkpw(data.password.encode(), hashed_password.encode()):
+#             logs.log("Hosting", "warn", "Client provided invalid password via router connection.")
+#             return JSONResponse({"status": False, "err_msg": "Invalid password"}, 403)
+
+#     logs.log("Hosting", "info", "Accepting client's connection request from router.")
+#     return JSONResponse({"status": True, "err_msg": ""}, 200)
+
+
+def connect_to_router() -> None:
+    try:
+        waitroom_ws = websocket.create_connection("ws://" + router_address + f"/ws-host-waitroom/{CONFIG["hostname"]}")
+        connection_resp = waitroom_ws.recv()
+        if connection_resp != "INIT-OK":
+            logs.log("Hosting", "error", f"Failed to register this host to router: {router_address} (received: `{connection_resp}`)")
+            sys.exit(1)
+            
+        logs.log("Hosting", "info", f"Successful host registration to router: {router_address}")
+        threading.Thread(target=_keepalive_sender, daemon=True).start()
+        
+    except ConnectionRefusedError:
+        logs.log("Hosting", "error", f"Couldn't register host to the router: {router_address} as it refused connection. (Might be closed)")
+        sys.exit(1)
+
+    while True:
+        try:
+            router_command = waitroom_ws.recv()
+            parsed_command = json.loads(router_command)
+            handle_router_message(parsed_command["event"], parsed_command["data"])
+        except ConnectionResetError:
+            logs.log("Hosting", "error", f"Connection closed by the router: {router_address}")
+            sys.exit(1)
+
+
+def handle_router_message(event: str, data: dict | str) -> None:
+    if event == "awaitingBridgeWS":
+        bridge_id = data
+        logs.log("Hosting", "info", f"Initalizing awaiting bridge connection: {bridge_id}")
+        threading.Thread(target=handle_bridge_connection, args=(bridge_id,), daemon=True).start()
+
+
 def start_server(port: int = 50506):
     threading.Thread(target=updates_sender, daemon=True).start()
-    
-    router_address = CONFIG.get("router_address")
-    try:
-        response = requests.post(router_address + "/register-host", json={
-            "host_name": CONFIG.get("hostname"),
-            "api_port": port,
-            "authorization": CONFIG.get("password", False) != False 
-        })
-        
-        if response.status_code != 200:
-            logs.log("Hosting", "error", f"Failed to host this server to router: `{router_address}` ({response.status_code}) {response.text}")
-        else:
-            logs.log("Hosting", "info", f"Registered this server to router: `{router_address}`")
-
-    except Exception as error:
-        logs.log("Hosting", "error", f"Failed to host this server to router: `{router_address}`: {error}")
-    
+    threading.Thread(target=connect_to_router, daemon=True).start()
     uvicorn.run(
         server,
-        host="localhost",
+        host="0.0.0.0",
         port=port,
         log_level="critical",
     )

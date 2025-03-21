@@ -5,9 +5,9 @@ from modules import monitor
 from modules import logs
 
 import threading
-import asyncio
 import psutil
 import time
+import json
 
 
 class DISK_Monitor(monitor.MonitorBase):
@@ -105,7 +105,7 @@ def disk_updates_checker():
                 }
 
                 for ws_client in connection.ws_clients:
-                    asyncio.run(ws_client.send_json(message))
+                    ws_client.send_text(json.dumps(message))
         
         removed_partitons = []
         for reg_partition in registered_partitions:
@@ -121,7 +121,7 @@ def disk_updates_checker():
                 }
                 
                 for ws_client in connection.ws_clients:
-                    asyncio.run(ws_client.send_json(message))
+                    ws_client.send_text(json.dumps(message))
 
         for rm_partition in removed_partitons:
             registered_partitions.pop(rm_partition)

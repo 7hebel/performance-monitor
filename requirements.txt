@@ -1,6 +1,7 @@
 uvicorn
 fastapi
 websockets
+websockets-client
 asyncio
 wmi
 python-dotenv

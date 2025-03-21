@@ -40,7 +40,7 @@ function fetchAndApplyHistoryPoints() {
         headers: { 'Content-Type': 'application/json' },
     };
 
-    fetch(HTTP_PROTO + "://" + API_ADDRESS + "/perf-history/points", options)
+    fetch(HTTP_PROTO + "://" + ROUTER_ADDRESS + "/api/" + HOSTNAME + "/perf-history/points", options)
         .then(response => response.json())
         .then(historyPoints => {
             setupTimeTravelPanel(historyPoints);
@@ -123,7 +123,7 @@ function queryTravelData() {
         headers: { 'Content-Type': 'application/json' },
     };
 
-    fetch(HTTP_PROTO + "://" + API_ADDRESS + "/perf-history/query-cluster/" + cluster, options)
+    fetch(HTTP_PROTO + "://" + ROUTER_ADDRESS + "/api/" + HOSTNAME + "/perf-history/query-cluster/" + cluster, options)        
         .then(response => response.json())
         .then(clusterData => {
             clearPerformancePage(true);

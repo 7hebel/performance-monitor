@@ -1,34 +1,47 @@
 import logs
 
 from dataclasses import dataclass
-import requests
+from fastapi import WebSocket
+import threading
+import time
 
 
 @dataclass
 class Host:
-    host_name: str
-    host: str
-    port: int
-    authorization: bool
+    hostname: str
+    waitroom_ws: WebSocket
+
+    def __post_init__(self) -> None:
+        self.__keep_alive_t = int(time.time())
+        self.ws_bridges: dict[str, dict[str, WebSocket]] = {}  # {bridgeId: {"client": WS, "host": WS}}
+
     
-    def connect_client(self, password: str | None) -> dict:
-        try:
-            host_connection_resp = requests.post(f"http://{self.host}:{self.port}/connect", json={
-                "password": password
-            })
-            
-            if host_connection_resp.status_code == 200:
-                return {"status": True, "err_msg": "", "host": f"{self.host}:{self.port}"}
-            
-            if host_connection_resp.status_code == 403:
-                return {"status": False, "err_msg": "Invalid password."}
-            
-            logs.log("error", f"Host: {self.host_name} returned invalid response: {host_connection_resp.status_code} ({host_connection_resp.text})")
-            return {"status": False, "err_msg": "Invalid host response."}
-            
-        except Exception as error:
-            logs.log("error", f"Connecting client to: {self.host_name} failed: {error}")
-            return {"status": False, "err_msg": "Internal error."}
+    async def awaiting_ws_bridge(self, bridge_id: str, client_socket: WebSocket) -> None:
+        await self.waitroom_ws.send_json({
+            "event": "awaitingBridgeWS",
+            "data": bridge_id
+        })
+        self.ws_bridges[bridge_id] = {"client": client_socket, "host": None}
+        logs.log("info", f"Informed host: {self.hostname} about awaiting WS Bridge: {bridge_id}")
+
+        
+    def keep_alive(self) -> None:
+        self.__keep_alive_t = int(time.time())
+    
+    def is_alive(self) -> bool:
+        return int(time.time()) - self.__keep_alive_t < (60 * 3)
     
     
 REGISTERED_HOSTS: dict[str, Host] = {}
+
+
+def alive_checker() -> None:
+    while True:
+        for hostname, host in REGISTERED_HOSTS.copy().items():
+            if not host.is_alive():
+                logs.log("warn", f"Disconnecting not alive host: {hostname}")
+                REGISTERED_HOSTS.pop(hostname)
+                
+        time.sleep(60 * 3)
+        
+threading.Thread(target=alive_checker, daemon=True).start()

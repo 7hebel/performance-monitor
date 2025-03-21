@@ -29,7 +29,7 @@ function fetchTrackableMetrics() {
         headers: { 'Content-Type': 'application/json' },
     };
 
-    fetch(HTTP_PROTO + "://" + API_ADDRESS + "/trackers/get-trackable", options)
+    fetch(HTTP_PROTO + "://" + ROUTER_ADDRESS + "/api/" + HOSTNAME + "/trackers/get-trackable", options)
         .then(response => response.json())
         .then(trackable => {
             const selectEl = document.getElementById("alertStatementMetric");
@@ -90,7 +90,7 @@ function createNewTracker() {
             limitValue: metricValue
         })
     };
-
+    
     fetch(HTTP_PROTO + "://" + API_ADDRESS + "/trackers/create", options)
         .then(response => response.json())
         .then(result => {
@@ -150,7 +150,7 @@ function fetchActiveTrackers() {
         headers: { 'Content-Type': 'application/json' },
     };
     
-    fetch(HTTP_PROTO + "://" + API_ADDRESS + "/trackers/get-active-trackers", options)
+    fetch(HTTP_PROTO + "://" + ROUTER_ADDRESS + "/api/" + HOSTNAME + "/trackers/get-active-trackers", options)
         .then(response => response.json())
         .then(tracked => {
             tracked.forEach(
@@ -170,7 +170,8 @@ function fetchHistoricalAlerts() {
         headers: { 'Content-Type': 'application/json' },
     };
     
-    fetch(HTTP_PROTO + "://" + API_ADDRESS + "/trackers/get-historical-alerts", options)
+    fetch(HTTP_PROTO + "://" + ROUTER_ADDRESS + "/api/" + HOSTNAME + "/trackers/get-historical-alerts", options)
+    // fetch(HTTP_PROTO + "://" + API_ADDRESS + "/trackers/get-historical-alerts", options)
         .then(response => response.json())
         .then(alerts => {
             alerts.forEach(

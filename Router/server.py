@@ -1,11 +1,13 @@
-import req_schemas
 import hosts
 import logs
 
+from starlette.websockets import WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+import requests
 import fastapi
 import uvicorn
+import uuid
 
 
 api = fastapi.FastAPI()
@@ -17,31 +19,93 @@ api.add_middleware(
     allow_headers=["*"],
 )
 
+@api.websocket("/ws-host-waitroom/{hostname}")
+async def host_waitroom(hostname: str, host_socket: fastapi.WebSocket) -> None:
+    await host_socket.accept()
+    logs.log("info", f"Accepted WS host waitroom connection from host: `{hostname}`")
 
-@api.post("/register-host")
-async def post_register_host(data: req_schemas.RegisterHostSchema, request: fastapi.Request) -> JSONResponse:
-    if len(data.host_name) < 3:
-        return JSONResponse({"status": False, "err_msg": f"host_name must be at least 3 characters long."}, 400)
-    if data.host_name in hosts.REGISTERED_HOSTS:
-        return JSONResponse({"status": False, "err_msg": f"Host with name `{data.host_name}` is already registered"}, 400)
+    if hostname in hosts.REGISTERED_HOSTS:
+        logs.log("warn", f"Cannot accept incoming WS host waitroom connection as `{hostname}` is already registered.")
+        await host_socket.send_text("INIT-ERR")
+        return
 
-    host = hosts.Host(data.host_name, request.client.host, data.api_port, data.authorization)
-    hosts.REGISTERED_HOSTS[data.host_name] = host
-    logs.log("info", f"Registered host: `{host.host_name}` (secure: {host.authorization}) (requested by: {request.client.host}:{request.client.port})")
+    host = hosts.Host(hostname, host_socket)
+    hosts.REGISTERED_HOSTS[hostname] = host
+    logs.log("info", f"Registered host: `{hostname}` ({host_socket.client.host}:{host_socket.client.port})")
+
+    await host_socket.send_text("INIT-OK")
+    await host_socket.receive()
 
 
-@api.post("/connect")
-async def post_connect(data: req_schemas.ConnectToHostSchema, request: fastapi.Request) -> JSONResponse:
-    if data.host_name not in hosts.REGISTERED_HOSTS:
-        return JSONResponse({"status": False, "err_msg": f"Host: `{data.host_name}` not found"}, 400)
+@api.websocket("/ws-bridge-client/{hostname}")
+async def ws_bridge_client(hostname: str, client_socket: fastapi.WebSocket) -> None:
+    await client_socket.accept()
+        
+    host = hosts.REGISTERED_HOSTS.get(hostname)
+    if host is None:
+        logs.log("warn", f"Cannot accept incoming client bridge request to: {hostname} not found.")
+        await client_socket.send_text("INIT-ERR")
+        return
+
+    bridge_id = uuid.uuid4().hex
+    logs.log("info", f"Accepted client ws bridge request to: {hostname} (bridge: {bridge_id})")    
+    await host.awaiting_ws_bridge(bridge_id, client_socket)
+    await client_socket.send_text("INIT-OK")
+
+    while True:
+        message = await client_socket.receive_text()
+        host_socket = host.ws_bridges[bridge_id]["host"]
+        if host_socket is not None:
+            await host_socket.send_text(message)
+
+
+@api.websocket("/ws-bridge-host/{hostname}/{bridge_id}")
+async def ws_bridge_host(hostname: str, bridge_id: str, host_socket: fastapi.WebSocket) -> None:
+    await host_socket.accept()
+
+    host = hosts.REGISTERED_HOSTS.get(hostname)
+    await host_socket.send_text("INIT-OK")
+
+    host.ws_bridges[bridge_id]["host"] = host_socket
+
+    client_socket = host.ws_bridges[bridge_id]["client"]
+    await client_socket.send_text("INIT-OK-HOST")
     
-    host = hosts.REGISTERED_HOSTS.get(data.host_name)
+    while True:
+        try:
+            message = await host_socket.receive_text()
+            await client_socket.send_text(message)
+        except WebSocketDisconnect:
+            logs.log("error", f"Host: {hostname} disconnected from bridge: {bridge_id}")
+            hosts.REGISTERED_HOSTS.pop(hostname, None)
+
     
-    if not data.password and host.authorization:
-        return JSONResponse({"status": False, "err_msg": f"Host: `{data.host_name}` requires password."}, 400)
+@api.get("/keep-alive/{hostname}")
+async def keep_alive_host(hostname: str) -> JSONResponse:
+    if hostname not in hosts.REGISTERED_HOSTS:
+        logs.log("warn", f"Received keep-alive request for host: {hostname} that is not registered.")
+        return JSONResponse({"status": False, "err_msg": f"Host: `{hostname}` is not registered."})
     
-    response = host.connect_client(data.password)
-    return JSONResponse(response)
+    hosts.REGISTERED_HOSTS[hostname].keep_alive()
+
+    
+@api.get("/api/{hostname}/{path:path}")
+async def bridge_get_request(hostname: str, path: str) -> JSONResponse:
+    host = hosts.REGISTERED_HOSTS.get(hostname)
+    if host is None:
+        logs.log("warn", f"Received bridge GET request: {hostname}/{path} for invalid host.")
+        return JSONResponse({"status": False, "err_msg": f"Host: {hostname} not found."})
+    
+    print(path)
+    
+    host_adress = f"http://{host.waitroom_ws.client.host}:50506/"
+    if host.waitroom_ws.client.host == "::1":
+        host_adress = f"http://localhost:50506/"
+        
+    host_resp = requests.get(host_adress + path).json()
+    return JSONResponse(host_resp)
+    
     
 
 uvicorn.run(api, host="0.0.0.0", port=50507)
+# uvicorn.run(api, host="localhost", port=50507)

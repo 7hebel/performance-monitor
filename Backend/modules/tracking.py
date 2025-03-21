@@ -133,7 +133,7 @@ def raise_alert(category: str, title: str, reason: str) -> None:
 
     try:
         for ws_client in connection.ws_clients:
-            connection.asyncio.run(ws_client.send_json(message))
+            ws_client.send_text(json.dumps(message))
     except (RuntimeError, connection.WebSocketDisconnect):
         logs.log("Connection", "warn", f"Disconnected from: {ws_client.client.host}:{ws_client.client.port} (alert write error)")
         connection.ws_clients.remove(ws_client)

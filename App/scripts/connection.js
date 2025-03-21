@@ -1,5 +1,7 @@
 const HTTP_PROTO = "http";
 const ROUTER_ADDRESS = "space7.smallhost.pl:50507";
+// const ROUTER_ADDRESS = "localhost:50507";
+let HOSTNAME = null;
 let API_ADDRESS = "";
 
 let socket = null;
@@ -130,31 +132,41 @@ async function handleMessage(evtype, data) {
 function requestConnection() {
     const hostname = document.getElementById("connectionHostname").value;
     const password = document.getElementById("connectionPassword").value;
-    
-    const options = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            host_name: hostname,
-            password: password
-        })
-    };
 
-    fetch(HTTP_PROTO + "://" + ROUTER_ADDRESS + "/connect", options)
-        .then(response => response.json())
-        .then(result => {
-            if (result.status == false) {
-                document.getElementById("connectionError").textContent = result.err_msg;
-            } else {
-                API_ADDRESS = result.host;
-                document.getElementById("connectionPanel").setAttribute("active", "0");
-                setupSocket();
-            }
-        })
-        .catch(error => {
-            document.getElementById("connectionError").textContent = "Failed to connect to router.";
-            console.error('Error while connecting to the router.', error);
-        });
+    socket = new WebSocket(`ws://${ROUTER_ADDRESS}/ws-bridge-client/${hostname}`);
+
+    socket.addEventListener('open', (event) => {
+        console.log("Connection opened");
+    });
+    
+    socket.addEventListener('message', (event) => {
+        if (event.data == "INIT-ERR") {
+            document.getElementById("connectionError").textContent = "Invalid credentials.";
+            return;
+        }
+        if (event.data == "INIT-OK") { return; }
+        if (event.data == "INIT-OK-HOST") {
+            document.getElementById("connectionPanel").setAttribute("active", "0");
+            setConnectionStatus(true);
+            HOSTNAME = hostname;
+
+            _sendMessageToServer(EV_REQUEST_COMPOSITION);
+            _sendMessageToServer(EV_REQUEST_ALL_PROCESSES);
+            fetchHistoricalAlerts();
+            fetchTrackableMetrics();
+            fetchActiveTrackers();
+            return;
+        }
+        
+        const message = JSON.parse(event.data);
+        handleMessage(message.event, message.data);
+    });
+
+    socket.addEventListener('close', (event) => {
+        console.log('Connection closed:', event);
+        // onSocketFailure();
+    });
+
+    socket.addEventListener('error', (error) => { console.error(error) });
+
 }
