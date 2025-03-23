@@ -3,8 +3,10 @@ fastapi
 websockets
 websocket-client
 asyncio
-wmi
 python-dotenv
 requests
 dmidecode
 bcrypt
+ping3
+IP2Trace
+IP2Location
