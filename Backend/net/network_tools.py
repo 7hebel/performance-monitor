@@ -85,7 +85,7 @@ class RouteTracer:
 
         self.destination_ip = to_ip(destination_server)
         self.destination_domain_name = ip_to_domain_name(destination_server)
-        self.ip2loc_db = IP2Location.IP2Location("./IP2LOCATION-LITE-DB1.IPV6.BIN")
+        self.ip2loc_db = IP2Location.IP2Location("./net/IP2LOCATION-LITE-DB1.IPV6.BIN")
 
     def header_to_dict(self, keys, packet, struct_format):
         values = struct.unpack(struct_format, packet)
@@ -147,7 +147,7 @@ class RouteTracer:
             "ttl": self.ttl,
             "ip": ip,
             "host": sender_hostname,
-            "delay_ms": delay,
+            "delay_ms": str(round(delay)) + "ms",
             "country": country_short
         }
             
@@ -223,14 +223,11 @@ def check_destination(dest_server_addr: str) -> tuple[str, str] | tuple[None, No
     except socket.gaierror:
         return None, None
 
-# def trace_route(destination_server):
-#     tracer = RouteTracer(destination_server)
-#     for hop in tracer.trace_route():
-#         print(hop)
 
 def get_ping(dest_server_addr: str) -> tuple[str, str, float]:
     ip, host = check_destination(dest_server_addr)
     ping_ms = ping3.ping(dest_server_addr, unit="ms")
+    ping_ms = str(round(ping_ms)) + "ms"
     
     return (ip, host, ping_ms)    
 

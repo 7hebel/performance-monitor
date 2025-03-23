@@ -1,3 +1,5 @@
+from net import network_tools
+
 from modules import processes
 from modules import tracking
 from modules import history
@@ -33,6 +35,7 @@ class EventType(StrEnum):
     PERF_METRICS_UPDATE = "perf-metrics-update"
     PERF_ADD_MONITOR = "perf-add-monitor"
     PROC_LIST_PACKET = "proc-list-packet"
+    TRACE_ROUTE_HOP = "trace-route-hop"
     UPDATE_PACKET = "update-packet"
     RAISE_ALERT = "raise-alert"
 
@@ -42,6 +45,7 @@ class EventType(StrEnum):
     CLEAR_ALERTS_HISTORY = "clear-alerts-history"
     KILL_PROC_REQUEST = "proc-kill-request"
     REMOVE_TRACKER = "remove-tracker"
+    TRACE_ROUTE = "trace-route"
 
 
 def connect_to_router() -> None:
@@ -132,6 +136,18 @@ def handle_router_message(event: str, data: dict | str) -> None:
             send_assoc_request_response(
                 request_id, tracking.load_historical_alerts()
             )
+            
+        if function == "net/ping":
+            data = data["payload"]
+            try:
+                ip, host, ping = network_tools.get_ping(data["address"])
+                send_assoc_request_response(
+                    request_id, {"status": True, "err_msg": "", "ping": ping, "ip": ip, "host": host}
+                )
+            except:
+                send_assoc_request_response(
+                    request_id, {"status": False, "err_msg": "Failed to measure ping."}
+                )
             
         if function.startswith("perf-history/query-cluster/"):
             cluster_number = int(function.split("/")[-1])
@@ -238,6 +254,15 @@ def handle_client_ws_message(client: websocket.WebSocket, msg: dict) -> None:
             tracking.clear_historical_alerts()
             logs.log("Tracking", "info", F"Client cleared alerts history")
 
+        case EventType.TRACE_ROUTE:
+            tracer = network_tools.RouteTracer(data)
+            for packet in tracer.trace_route():
+                message = {
+                    "event": EventType.TRACE_ROUTE_HOP,
+                    "data": packet
+                }
+                client.send_text(json.dumps(message))
+                
 
 def updates_packet_sender() -> None:
     """ Sent update packets from all buffers. """

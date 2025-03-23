@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="styles/loader.css">
     <link rel="stylesheet" href="styles/alerts.css">
     <link rel="stylesheet" href="styles/connect.css">
+    <link rel="stylesheet" href="styles/network.css">
     <link rel="stylesheet" href="styles/_responsive.css">
     
     <script src="scripts/charts.js"></script>
@@ -19,6 +20,7 @@
     <script defer src="scripts/connection.js"></script>
     <script defer src="scripts/timetravel.js"></script>
     <script defer src="scripts/processes.js"></script>
+    <script defer src="scripts/network.js"></script>
     <script defer src="scripts/alerts.js"></script>
     
     <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css" />
@@ -47,6 +49,11 @@
             <div id="alertNotification" active="0"></div>
         </div>
         <div class="tabsSep"></div>
+        <div class="tab" onclick="switchTab(this, `tab-network`);" tabColor="#236265">
+            <i class="tabIcon fa-solid fa-wifi"></i>
+            <p class="tabTitle">Network</p>
+        </div>
+        <div class="tabsSep"></div>
         
         <p id="connectionStatus" status="0" class="shine">
             <i class="fa-solid fa-wifi"></i>
@@ -55,7 +62,7 @@
 
     <div id="tabsViews">
 
-        <div class="tabView" id="tab-performance" active="1">
+        <div class="tabView" id="tab-performance" active="0">
             <div id="monitorsList" class="panel shine">
                 <div id="performanceTimingInfo">
                     <div class="dot"></div>
@@ -216,6 +223,32 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="tabView" id="tab-network" active="1">
+            <div class="alertsPanel panel shine">
+                <div class="networkPanel">
+                    <i class="backgroundIcon fa-solid fa-globe"></i>
+                    <p class="panelTitle">Ping</p>
+                    <div class="panelContent">
+                        <label class="inputLabel" for="pingDest">Target address: </label>
+                        <input type="text" class="netInput" id="pingDest" placeholder="dns.google.com / 8.8.8.8">
+                        <button class="pingBtn" onclick="measurePing()">Ping</button>
+                        <span id="pingResult">- ms</span>
+                    </div>
+                </div>
+
+                <div class="networkPanel">
+                    <i class="backgroundIcon fa-solid fa-location-dot"></i>
+                    <p class="panelTitle">Trace route</p>
+                    <div class="panelContent">
+                        <label class="inputLabel" for="pingDest">Target address: </label>
+                        <input type="text" class="netInput" id="traceDest" placeholder="dns.google.com / 8.8.8.8">
+                        <button class="pingBtn" onclick="traceRoute()">Trace</button>
+                    </div>
+                </div>
+                <div id="traceRoute"></div>
             </div>
         </div>
 

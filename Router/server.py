@@ -149,7 +149,6 @@ async def bridge_get_request(hostname: str, path: str) -> JSONResponse:
 @api.post("/api/{hostname}/{path:path}")  
 async def bridge_post_request(hostname: str, path: str, request: fastapi.Request) -> JSONResponse:
     payload = await request.json()
-    print(payload)
 
     host = hosts.REGISTERED_HOSTS.get(hostname)
     if host is None:

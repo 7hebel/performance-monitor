@@ -20,6 +20,8 @@ const EV_REQUEST_PROC_KILL = "proc-kill-request";
 const EV_REQUEST_ALL_PROCESSES = "all-processes-request";
 const EV_REMOVE_TRACKER = "remove-tracker";
 const EV_CLEAR_ALERTS_HISTORY = "clear-alerts-history";
+const EV_TRACE_ROUTE_HOP = "trace-route-hop"
+const EV_TRACE_ROUTE = "trace-route"
 
 const PACKET_PERFORMANCE = "perf-metrics";
 const PACKET_PROCESSES = "proc-stats";
@@ -86,6 +88,11 @@ async function handleMessage(evtype, data) {
         const notificationDesc = `The alert has been raised for: ${data.title} as: ${data.reason}`;
         sendNotification(notificationTitle, notificationDesc);
         addRaisedAlert(data.category, data.title, data.reason, data.timeinfo, 1);
+    }
+
+    if (evtype == EV_TRACE_ROUTE_HOP) {
+        const traceEl = document.getElementById("traceRoute");
+        traceEl.innerHTML +="<span>" + data.ttl + " IP: " + data.ip + " " + (data.host? data.host : "") + " " + data.delay_ms + " " + data.country + "</span>";
     }
     
 }

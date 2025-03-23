@@ -1,0 +1,70 @@
+.networkPanel {
+    position: relative;
+    width: 100%;
+    background: linear-gradient(160deg, #303030 0%, var(--accent-color) 1500%);
+    border-radius: 6px;
+    padding: 8px;
+    display: flex;
+    box-shadow: 0px 6px 8px 0px #0000000c, var(--shine-border);
+    border: 1px solid #ffffff0a;
+    margin-bottom: 20px;
+}
+
+.panelTitle {
+    font-size: 32px;
+    font-weight: 600;
+    margin-block: 4px;
+    margin-left: 40px;
+    color: var(--text-color);
+    white-space: nowrap;
+}
+
+.panelContent {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+}
+
+.inputLabel {
+    color: var(--text-color);
+}
+
+.netInput {
+    border-radius: 4px;
+    border: 1px solid #ffffff15;
+    background-color: #2c2c2c;
+    color: white;
+    font-family: 'Ubuntu Sans Mono';
+    padding-block: 8px;
+    width: 30ch;
+}
+
+.pingBtn {
+    border: 1px solid #ffffff15;
+    border-radius: 4px;
+    background-color: var(--text-color);
+    cursor: pointer;
+    transition: background-color .2s;
+}
+
+.pingBtn:hover {
+    background-color: white;
+}
+
+
+#pingResult {
+    margin-left: 40px;
+    color: white;
+    font-family: 'Ubuntu Sans Mono';
+    font-size: 24px;
+}
+
+#traceRoute {
+    color: white;
+    font-family: 'Ubuntu Sans Mono';
+    display: flex;
+    flex-direction: column;
+}
