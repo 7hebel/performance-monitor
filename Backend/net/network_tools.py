@@ -8,11 +8,11 @@ import IP2Location
 import platform
 import socket
 import struct
+import select
 import ping3
 import time
 import sys
 import os
-
 
 ICMP_ECHO = 8
 ICMP_V6_ECHO = 128
@@ -131,17 +131,29 @@ class RouteTracer:
         if sent_time is None:
             return
         
+        print("a")
         receive_time, icmp_header, ip_header = self.receive_icmp_reply(icmp_socket)
         icmp_socket.close()
         if receive_time:
             delay = (receive_time - sent_time) * 1000.0
 
+        if ip_header is None:
+            return (None, {
+                "ttl": self.ttl,
+                "ip": "*",
+                "host": "*",
+                "delay_ms": "*",
+                "country": "*"
+            })
+
+        print("b")
         ip = socket.inet_ntoa(struct.pack('!I', ip_header['Source_IP']))
         try:
             sender_hostname = socket.gethostbyaddr(ip)[0]
         except socket.herror:
             sender_hostname = None
-             
+        
+        print("c")
         country_short = self.ip2loc_db.get_all(ip).country_short
         trace_data = {
             "ttl": self.ttl,
@@ -195,6 +207,7 @@ class RouteTracer:
         time_limit = time.time() + timeout
         
         while True:
+            _ = select.select([icmp_socket], [], [], timeout)
             receive_time = time.time()
             if receive_time > time_limit:
                 return None, None, None
