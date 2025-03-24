@@ -8,7 +8,7 @@ from dotenv import dotenv_values
 import requests
 
 
-env_config = dotenv_values("../.env")
+env_config = dotenv_values(".env")
 DYNATRACE_ENVIRONMENT_ID = env_config.get("DT-EnvId")
 DYNATRACE_API_KEY = env_config.get("DT-API")
 MACHINE_ID = dmi_provider.DMI_DATA["system"][0]["UUID"]

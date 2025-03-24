@@ -1,9 +1,8 @@
-from datetime import datetime as Datetime
-from dataclasses import dataclass
+import dynatrace
+
 from typing import Literal
 from enum import StrEnum
 import colorama
-import time
 
 colorama.init()
 
@@ -13,14 +12,6 @@ class LogStatus(StrEnum):
     warn="warn"
     error="error"
 
-
-@dataclass
-class LogEntity:
-    status: LogStatus | Literal['info', 'warn', 'error']
-    content: str
-    subject: str
-    timestamp: int
-        
 
 def log(status: LogStatus | Literal['info', 'warn', 'error'], content: str) -> None:    
     if status == LogStatus.info:
@@ -32,3 +23,5 @@ def log(status: LogStatus | Literal['info', 'warn', 'error'], content: str) -> N
         
     log_content += content + colorama.Fore.RESET
     print(log_content)
+
+    dynatrace.save_log_to_dynatrace(status, content)

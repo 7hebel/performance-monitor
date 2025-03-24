@@ -6,8 +6,8 @@ Computer's performance monitoring app similar to the Window's Task Manager.
 
 ### Getting started.
 
-Environmental variables are stored in `.env` file. It is not present in the repository.
-Used for integration with Dynatrace.
+Environmental variables are stored in `Backend/.env` and `Router/.env` file. It is not present in the repository.
+Used for integration with Dynatrace. DT-API for Backend and Router should be different.
 ```env
 DT-EnvId=aaa00000
 DT-API=dt0000.AAAAAAAAAAAAAAAAAAAAAAAA.BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
