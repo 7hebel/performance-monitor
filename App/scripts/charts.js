@@ -24,7 +24,7 @@ function generateChartMetric(identificator, title, color, metricEl, previewEl, _
         },
         chart: {
             height: 400,
-            fontFamily: 'Ubuntu Sans Mono',
+            fontFamily: 'Roboto Mono',
             type: "area",
             background: '#ffffff00',
             foreColor: 'var(--text-color)',
@@ -73,7 +73,7 @@ function generateChartMetric(identificator, title, color, metricEl, previewEl, _
         chart: {
             height: 110,
             offsetY: 9,
-            fontFamily: 'Ubuntu Sans Mono',
+            fontFamily: 'Roboto Mono',
             type: "area",
             background: '#ffffff00',
             foreColor: 'var(--text-color)',

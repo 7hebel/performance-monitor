@@ -202,9 +202,11 @@ def connect_to_bridge_connection(bridge_id: str) -> None:
     while True:
         try:
             client_message = bridge_ws.recv()
+            if not client_message:
+                continue
             handle_client_ws_message(bridge_ws, json.loads(client_message))
         except Exception as error:
-            logs.log("Hosting", "error", f"WS-Bridge: {bridge_id} connection failed: {error}")
+            logs.log("Hosting", "error", f"WS-Bridge: {bridge_id} connection failed: {error} (message: `{client_message}`)")
             ws_clients.remove(bridge_ws)
             return
     
@@ -290,7 +292,8 @@ def updates_packet_sender() -> None:
                 ws_client.send_text(json.dumps(message))
         except Exception:
             logs.log("Connection", "warn", f"Disconnected from client (write error)")
-            ws_clients.remove(ws_client)
+            if ws_client in ws_clients:
+                ws_clients.remove(ws_client)
 
 
 def start_server():

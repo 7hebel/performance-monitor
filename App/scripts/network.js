@@ -32,7 +32,9 @@ function measurePing() {
 function traceRoute() {
     const address = document.getElementById("traceDest").value;
     _sendMessageToServer(EV_TRACE_ROUTE, address);
-    document.getElementById("traceRoute").innerHTML = "";
+    Array.from(document.getElementById("traceRoute").children).forEach(el => {
+        if (el.className != "trackersInfo") el.remove();
+    })
 }
 
 

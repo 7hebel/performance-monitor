@@ -16,7 +16,7 @@
 .code-loader span {
     display: inline-block;
     animation: pulse_414 0.4s alternate infinite ease-in-out;
-    font-family: 'Ubuntu Sans Mono';
+    font-family: 'Roboto Mono';
 }
 
 .code-loader span:nth-child(odd) {

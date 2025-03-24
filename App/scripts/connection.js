@@ -92,7 +92,15 @@ async function handleMessage(evtype, data) {
 
     if (evtype == EV_TRACE_ROUTE_HOP) {
         const traceEl = document.getElementById("traceRoute");
-        traceEl.innerHTML +="<span>" + data.ttl + " IP: " + data.ip + " " + (data.host? data.host : "") + " " + data.delay_ms + " " + data.country + "</span>";
+        const hopContent = `
+            <div class="trace-route-hop">
+                <span>${data.ttl}</span>
+                <span>${data.ip} ${data.host? "(" + data.host + ")" : ""}</span>
+                <span>${data.country}</span>
+                <span>${data.delay_ms}</span>
+            </div>
+        `
+        traceEl.innerHTML += hopContent;
     }
     
 }

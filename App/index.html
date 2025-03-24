@@ -62,7 +62,7 @@
 
     <div id="tabsViews">
 
-        <div class="tabView" id="tab-performance" active="0">
+        <div class="tabView" id="tab-performance" active="1">
             <div id="monitorsList" class="panel shine">
                 <div id="performanceTimingInfo">
                     <div class="dot"></div>
@@ -226,7 +226,7 @@
             </div>
         </div>
 
-        <div class="tabView" id="tab-network" active="1">
+        <div class="tabView" id="tab-network" active="0">
             <div class="alertsPanel panel shine">
                 <div class="networkPanel">
                     <i class="backgroundIcon fa-solid fa-globe"></i>
@@ -235,7 +235,7 @@
                         <label class="inputLabel" for="pingDest">Target address: </label>
                         <input type="text" class="netInput" id="pingDest" placeholder="dns.google.com / 8.8.8.8">
                         <button class="pingBtn" onclick="measurePing()">Ping</button>
-                        <span id="pingResult">- ms</span>
+                        <span id="pingResult"></span>
                     </div>
                 </div>
 
@@ -248,7 +248,14 @@
                         <button class="pingBtn" onclick="traceRoute()">Trace</button>
                     </div>
                 </div>
-                <div id="traceRoute"></div>
+                <div id="traceRoute" class="tableContainer">
+                    <div class="trackersInfo">
+                        <span>TTL</span>
+                        <span>IP (host)</span>
+                        <span>Country</span>
+                        <span>Ping</span>
+                    </div>
+                </div>
             </div>
         </div>
 
