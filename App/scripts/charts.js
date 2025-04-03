@@ -49,7 +49,18 @@ function generateChartMetric(identificator, title, color, metricEl, previewEl, _
             axisTicks: { show: false },
             crosshairs: { show: (_travelModeChart && !travelModePlaybackType) },
         },
-        tooltip: { enabled: (_travelModeChart && !travelModePlaybackType) },
+        tooltip: { 
+            enabled: (_travelModeChart && !travelModePlaybackType),
+            y: {
+                formatter: function (value, { dataPointIndex, w }) {
+                    return `${value}%<br><br>Top CPU usage:<br>${w.config.series[0].data[dataPointIndex].custom}`;
+                },
+                title: {
+                    formatter: () => "",
+                },
+
+            }
+        },
         yaxis: {
             labels: { offsetX: -4 },
             min: 0,

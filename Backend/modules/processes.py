@@ -1,3 +1,4 @@
+from modules import history
 from modules import state
 from modules import logs
 
@@ -21,6 +22,7 @@ class ProcessData:
 
 class ProcessesObserver:
     observers: dict[str, "ProcessesObserver"] = {}
+    top_processes = []
     
     def __init__(self, process: psutil.Process) -> None:
         self.name = process.name()
@@ -56,6 +58,7 @@ class ProcessesObserver:
             ProcessesObserver.observers.pop(self.name, None)
                 
         proc_count = len(self.processes)
+        self.evaluate_top_processes(cpu_usage / CPUS_COUNT)
         
         return ProcessData(
             name=self.name,
@@ -86,6 +89,24 @@ class ProcessesObserver:
             state.processes_stats_updates_buffer.insert_update(self.name, {"status": False})
             ProcessesObserver.observers.pop(self.name)
 
+    def evaluate_top_processes(self, cpu_usage: float) -> None:
+        """ Update list of TOP 3 most processor using processes. """
+        if cpu_usage < 3:  # Ignore processes using less than 3% of cpu
+            return
+        
+        for (proc_usage, proc_name) in ProcessesObserver.top_processes:
+            if proc_name == self.name:
+                ProcessesObserver.top_processes.remove((proc_usage, proc_name))
+        
+        if not ProcessesObserver.top_processes:
+            return ProcessesObserver.top_processes.append((cpu_usage, self.name))
+        
+        if cpu_usage > ProcessesObserver.top_processes[-1][0] or len(ProcessesObserver.top_processes) < 3:
+            new_top_processes = [*ProcessesObserver.top_processes, (cpu_usage, self.name)]
+            new_top_processes.sort(key=lambda v: v[0], reverse=True)
+            new_top_processes = new_top_processes[:3]
+            ProcessesObserver.top_processes = new_top_processes
+            
 
 SKIP_PROCESS_NAMES = ["svchost.exe", "System Idle Process", "System", ""]
         
@@ -114,3 +135,14 @@ def processes_checker() -> None:
         for observer in ProcessesObserver.observers.copy().values():
             observer.report_updates()
             
+
+def top_processes_reporter() -> None:
+    logs.log("Process", "info", "Starting top processes reporter...")
+    
+    while True:
+        top_processes = []
+        for (cpu_usage, name) in ProcessesObserver.top_processes:
+            top_processes.append(f"{name}: {round(cpu_usage)}%")
+
+        history.include_top_processes(top_processes)
+        time.sleep(1)

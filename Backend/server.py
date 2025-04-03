@@ -40,5 +40,6 @@ import monitors
 
 
 threading.Thread(target=processes.processes_checker, daemon=True).start()
+threading.Thread(target=processes.top_processes_reporter, daemon=True).start()
 
 connection.start_server()

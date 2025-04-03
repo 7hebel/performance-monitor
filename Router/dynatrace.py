@@ -7,8 +7,8 @@ env_config = dotenv_values(".env")
 DYNATRACE_ENVIRONMENT_ID = env_config.get("DT-EnvId")
 DYNATRACE_API_KEY = env_config.get("DT-API")
 
-ENABLE_INTEGRATION = DYNATRACE_ENVIRONMENT_ID and DYNATRACE_API_KEY
-
+# ENABLE_INTEGRATION = DYNATRACE_ENVIRONMENT_ID and DYNATRACE_API_KEY
+ENABLE_INTEGRATION = False
 
 def save_log_to_dynatrace(status: str, content: str) -> None:
     if not ENABLE_INTEGRATION:

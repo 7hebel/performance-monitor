@@ -159,11 +159,13 @@ function queryTravelData() {
 
                             for (second=0; second<60; second++) {  // Ensure each dump provides exactly 60 values no matter actual amount of data.
                                 const approxValueIndex = Math.min(Math.round((second / 60) * values.length), values.length - 1);
+                                const approxTopProcIndex = (dump._TOP_PROC)? Math.min(Math.round((second / 60) * dump._TOP_PROC.length), values.length - 1) : null;
                                 const value = values[approxValueIndex];
+                                const topProcs = (approxTopProcIndex !== null) ? dump._TOP_PROC[approxTopProcIndex]?.join("<br>") : "(no data)";
                                 let secondInfo = second; 
                                 if (secondInfo < 10) secondInfo = `0${secondInfo}`;
 
-                                charts.dataset.push({x: timeInfo + ":" + secondInfo, y: value});
+                                charts.dataset.push({x: timeInfo + ":" + secondInfo, y: value, custom: topProcs});
                             }
                         }
                     )

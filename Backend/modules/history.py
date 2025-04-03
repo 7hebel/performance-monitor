@@ -54,9 +54,14 @@ def ensure_cluster_file(timestamp: RichTimestamp) -> None:
 minute_updates_buffer: dict[str, list[metrics.MetricValueT]] = {}
 minute_updates_timestamp = get_timestamp()  # Used to flush buffer when current minute exceeds.
 
+is_flushing = False
 def _flush_updates_buffer() -> None:
     """ Save changes made in minute to specified cluster file. """
-    global minute_updates_timestamp
+    global minute_updates_timestamp, is_flushing
+    if is_flushing:
+        return
+    
+    is_flushing = True
     
     ensure_cluster_file(minute_updates_timestamp)
     buffer = minute_updates_buffer.copy()
@@ -71,6 +76,7 @@ def _flush_updates_buffer() -> None:
     
     minute_updates_buffer.clear()
     minute_updates_timestamp = get_timestamp()
+    is_flushing = False
 
 
 def handle_updates(updates: dict[str, metrics.MetricValueT]) -> None:
@@ -84,6 +90,10 @@ def handle_updates(updates: dict[str, metrics.MetricValueT]) -> None:
             minute_updates_buffer[metric_id].append(value)
         else:
             minute_updates_buffer[metric_id] = [value]
+        
+def include_top_processes(top_processes: list[str]) -> None:
+    handle_updates({"_TOP_PROC": top_processes})    
+    
         
 state.perf_metrics_updates_buffer.attach_flush_listener(handle_updates)    
     
